@@ -7,20 +7,20 @@ Template Name: Search
 <?php get_header(); ?>
 <div id="content">
 
-<div class="solr clearfix">
+<div class="dezi clearfix">
 	
 <?php 
     $results = s4w_search_results(); 
     if (!isset($results['results']) || $results['results'] === NULL) {
-        echo "<div class='solr_noresult'><h2>Sorry, search is unavailable right now</h2><p>Try again later?</p></div>";
+        echo "<div class='dezi_noresult'><h2>Sorry, search is unavailable right now</h2><p>Try again later?</p></div>";
     } 
     else {
     ?>
 
-	<div class="solr1 clearfix">
-		<div class="solr_search">
+	<div class="dezi1 clearfix">
+		<div class="dezi_search">
 		    <?php if ($results['qtime']) {
-                printf("<label class='solr_response'>Response time: <span id=\"qrytime\">{$results['qtime']}</span> s</label>");
+                printf("<label class='dezi_response'>Response time: <span id=\"qrytime\">{$results['qtime']}</span> s</label>");
             } 
             
             //if server id has been defined keep hold of it
@@ -32,22 +32,22 @@ Template Name: Search
             ?>
 
             <form name="searchbox" method="get" id="searchbox" action="">
-			        <input id="qrybox" name="s" type="text" class="solr_field" value="<?php echo $results['query'] ?>"/>
+			        <input id="qrybox" name="s" type="text" class="dezi_field" value="<?php echo $results['query'] ?>"/>
 			        <?php echo $serverval; ?>
 			        <input id="searchbtn" type="submit" value="Search" />
             </form>
 		</div>
 
 		<?php if($results['dym']) {
-			printf("<div class='solr_suggest'>Did you mean: <a href='%s'>%s</a> ?</div>", $results['dym']['link'], $results['dym']['term']);
+			printf("<div class='dezi_suggest'>Did you mean: <a href='%s'>%s</a> ?</div>", $results['dym']['link'], $results['dym']['term']);
 		} ?>
 
 	</div>
 
-	<div class="solr2">
+	<div class="dezi2">
 
-		<div class="solr_results_header clearfix">
-			<div class="solr_results_headerL">
+		<div class="dezi_results_header clearfix">
+			<div class="dezi_results_headerL">
 
 				<?php if ($results['hits'] && $results['query'] && $results['qtime']) {
 				    if ($results['firstresult'] === $results['lastresult']) {
@@ -58,25 +58,25 @@ Template Name: Search
 				} ?>
 
 			</div>
-			<div class="solr_results_headerR">
-				<ol class="solr_sort2">
-					<li class="solr_sort_drop"><a href="<?php echo $results['sorting']['scoredesc'] ?>">Relevance<span></span></a></li>					
+			<div class="dezi_results_headerR">
+				<ol class="dezi_sort2">
+					<li class="dezi_sort_drop"><a href="<?php echo $results['sorting']['scoredesc'] ?>">Relevance<span></span></a></li>					
 					<li><a href="<?php echo $results['sorting']['datedesc'] ?>">Newest</a></li>					
 					<li><a href="<?php echo $results['sorting']['dateasc'] ?>">Oldest</a></li>					
 					<li><a href="<?php echo $results['sorting']['commentsdesc'] ?>">Most Comments</a></li>					
 					<li><a href="<?php echo $results['sorting']['commentsasc'] ?>">Least Comments</a></li>					
 				</ol>
-				<div class="solr_sort">Sort by:</div>
+				<div class="dezi_sort">Sort by:</div>
 			</div>
 		</div>
 
-		<div class="solr_results">
+		<div class="dezi_results">
 			
 <?php 
                     
            
                     if ($results['hits'] === "0") {
-					printf("<div class='solr_noresult'>
+					printf("<div class='dezi_noresult'>
 										<h2>Sorry, no results were found.</h2>
 										<h3>Perhaps you mispelled your search query, or need to try using broader search terms.</h3>
 										<p>For example, instead of searching for 'Apple iPhone 3.0 3GS', try something simple like 'iPhone'.</p>
@@ -100,7 +100,7 @@ Template Name: Search
 			} ?>
 
 			<?php if ($results['pager']) {
-				printf("<div class='solr_pages'>");
+				printf("<div class='dezi_pages'>");
 				    $itemlinks = array();
 				    $pagecnt = 0;
 				    $pagemax = 10;
@@ -118,7 +118,7 @@ Template Name: Search
 							$itemlinks[] = sprintf("<a href='%s'>%s</a>", $pageritm['link'], $pageritm['page']);
 						} else {
 						    $found = true;
-							$itemlinks[] = sprintf("<a class='solr_pages_on' href='%s'>%s</a>", $pageritm['link'], $pageritm['page']);
+							$itemlinks[] = sprintf("<a class='dezi_pages_on' href='%s'>%s</a>", $pageritm['link'], $pageritm['page']);
 						}
 						
 						$pagecnt += 1;
@@ -146,10 +146,10 @@ Template Name: Search
 		</div>	
 	</div>
 
-	<div class="solr3">
-		<ul class="solr_facets">
+	<div class="dezi3">
+		<ul class="dezi_facets">
 
-			<li class="solr_active">
+			<li class="dezi_active">
 				<ol>
 					<?php if ($results['facets']['selected']) {
 					    foreach( $results['facets']['selected'] as $selectedfacet) {

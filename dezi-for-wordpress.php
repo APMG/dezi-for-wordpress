@@ -1,7 +1,7 @@
 <?php
 /*
 Plugin Name: Solr for WordPress
-Plugin URI: http://wordpress.org/extend/plugins/solr-for-wordpress/
+Plugin URI: http://wordpress.org/extend/plugins/dezi-for-wordpress/
 Donate link: http://www.mattweber.org
 Description: Indexes, removes, and updates documents in the Solr search engine.
 Version: 0.5.1
@@ -34,7 +34,7 @@ global $wp_version, $version;
 
 $version = '0.5.1';
 
-$errmsg = __('Solr for WordPress requires WordPress 3.0 or greater. ', 'solr4wp');
+$errmsg = __('Solr for WordPress requires WordPress 3.0 or greater. ', 'dezi4wp');
 if (version_compare($wp_version, '3.0', '<')) {
     exit ($errmsg);
 }
@@ -71,11 +71,11 @@ function s4w_update_option($optval) {
     }
 }
 /**
- * Connect to the solr service
+ * Connect to the dezi service
  * @param $server_id string/int its either master or array index
- * @return solr service object
+ * @return dezi service object
  */
-function s4w_get_solr($server_id = NULL) {
+function s4w_get_dezi($server_id = NULL) {
   # get the connection options
   $plugin_s4w_settings = s4w_get_option();
   //if the provided server_id does not exist use the default id 'master'
@@ -91,10 +91,10 @@ function s4w_get_solr($server_id = NULL) {
     return NULL;
   }
 
-  # create the solr service object
-  $solr = new Apache_Solr_Service($host, $port, $path);
+  # create the dezi service object
+  $dezi = new Apache_Solr_Service($host, $port, $path);
 
-  return $solr;
+  return $dezi;
 }
 
 
@@ -105,10 +105,10 @@ function s4w_get_solr($server_id = NULL) {
  * @return boolean
  */
 function s4w_ping_server($server_id = NULL) {
-  $solr = s4w_get_solr($server);
+  $dezi = s4w_get_dezi($server);
   $ping = FALSE;
   # if we want to check if the server is alive, ping it
-  if ($solr->ping()) {
+  if ($dezi->ping()) {
     $ping = TRUE;
   }
   return $ping;
@@ -239,7 +239,7 @@ function s4w_build_document( $post_info, $domain = NULL, $path = NULL) {
         }
     } else {
         // this will fire during blog sign up on multisite, not sure why
-        _e('Post Information is NULL', 'solr4wp');
+        _e('Post Information is NULL', 'dezi4wp');
     }
     syslog(LOG_ERR, "built document for $blog_id - $domain$path with title " .  $post_info->post_title . 
       " and status of " . $post_info->post_status);
@@ -254,25 +254,25 @@ function s4w_format_date( $thedate ) {
 
 function s4w_post( $documents, $commit = TRUE, $optimize = FALSE) { 
     try {
-        $solr = s4w_get_solr();
-        if ( ! $solr == NULL ) {
+        $dezi = s4w_get_dezi();
+        if ( ! $dezi == NULL ) {
             
             if ($documents) {
                 syslog(LOG_ERR,"posting " . count($documents) . " documents for blog:" . get_bloginfo('wpurl'));
-                $solr->addDocuments( $documents );
+                $dezi->addDocuments( $documents );
             }
             
             if ($commit) {
                syslog(LOG_ERR,"telling Solr to commit");
-                $solr->commit();
+                $dezi->commit();
             }
             
             if ($optimize) {
-                $solr->optimize();
+                $dezi->optimize();
             }
         }
         else {
-          syslog(LOG_ERR, "failed to get a solr instance created");
+          syslog(LOG_ERR, "failed to get a dezi instance created");
         }
     } catch ( Exception $e ) {
         syslog(LOG_ERR,"ERROR: " . $e->getMessage());
@@ -282,9 +282,9 @@ function s4w_post( $documents, $commit = TRUE, $optimize = FALSE) {
 
 function s4w_optimize() {
     try {
-        $solr = s4w_get_solr();
-        if ( ! $solr == NULL ) {
-            $solr->optimize();
+        $dezi = s4w_get_dezi();
+        if ( ! $dezi == NULL ) {
+            $dezi->optimize();
         }
     } catch ( Exception $e ) {
         syslog(LOG_ERR,$e->getMessage());
@@ -293,10 +293,10 @@ function s4w_optimize() {
 
 function s4w_delete( $doc_id ) {
     try {
-        $solr = s4w_get_solr();
-        if ( ! $solr == NULL ) {
-            $solr->deleteById( $doc_id );
-            $solr->commit();
+        $dezi = s4w_get_dezi();
+        if ( ! $dezi == NULL ) {
+            $dezi->deleteById( $doc_id );
+            $dezi->commit();
         }
     } catch ( Exception $e ) {
         syslog(LOG_ERR,$e->getMessage());
@@ -305,10 +305,10 @@ function s4w_delete( $doc_id ) {
 
 function s4w_delete_all() {
     try {
-        $solr = s4w_get_solr();
-        if ( ! $solr == NULL ) {
-            $solr->deleteByQuery( '*:*' );
-            $solr->commit();
+        $dezi = s4w_get_dezi();
+        if ( ! $dezi == NULL ) {
+            $dezi->deleteByQuery( '*:*' );
+            $dezi->commit();
         }
     } catch ( Exception $e ) {
         echo $e->getMessage();
@@ -317,10 +317,10 @@ function s4w_delete_all() {
 
 function s4w_delete_blog($blogid) {
     try {
-        $solr = s4w_get_solr();
-        if ( ! $solr == NULL ) {
-            $solr->deleteByQuery( "blogid:{$blogid}" );
-            $solr->commit();
+        $dezi = s4w_get_dezi();
+        if ( ! $dezi == NULL ) {
+            $dezi->deleteByQuery( "blogid:{$blogid}" );
+            $dezi->commit();
         }
     } catch ( Exception $e ) {
         echo $e->getMessage();
@@ -808,7 +808,7 @@ function s4w_search_results() {
                             foreach ($facet as $facetval => $facetcnt) {
                                 $facetitm = array();
                                 $facetitm['count'] = sprintf(__("%d"), $facetcnt);
-                                $facetitm['link'] = htmlspecialchars(sprintf(__('?s=%s&fq=%s:%s%s', 'solr4wp'), urlencode($qry), $facetfield, urlencode('"' . $facetval . '"'), $fqstr));
+                                $facetitm['link'] = htmlspecialchars(sprintf(__('?s=%s&fq=%s:%s%s', 'dezi4wp'), urlencode($qry), $facetfield, urlencode('"' . $facetval . '"'), $fqstr));
                                 //if server is set add it on the end of the url
                                 $facetitm['link'] .=$serverval;
                                 $facetitm['name'] = $facetval;
@@ -915,7 +915,7 @@ function s4w_get_output_taxo($facet, $taxo, $prefix, $fqstr, $field) {
             $facetvars = get_object_vars($facet);
             $facetitm = array();
             $facetitm['count'] = sprintf(__("%d"), $facetvars[$newprefix]);
-            $facetitm['link'] = htmlspecialchars(sprintf(__('?s=%s&fq=%s:%s%s', 'solr4wp'), $qry, $field,  urlencode('"' . $newprefix . '"'), $fqstr));
+            $facetitm['link'] = htmlspecialchars(sprintf(__('?s=%s&fq=%s:%s%s', 'dezi4wp'), $qry, $field,  urlencode('"' . $newprefix . '"'), $fqstr));
             $facetitm['name'] = $taxoname;
             $outitms = s4w_get_output_taxo($facet, $taxoval, $newprefix, $fqstr, $field);
             if ($outitms) {
@@ -953,15 +953,15 @@ function s4w_query( $qry, $offset, $count, $fq, $sortby, $server = NULL) {
   if(!$server) {
     $server = $plugin_s4w_settings['s4w_server']['type']['search'];
   }
-  $solr = s4w_get_solr($server);
+  $dezi = s4w_get_dezi($server);
   if (!function_exists($function = 's4w_'.$server.'_query')) {
     $function = 's4w_master_query';
   }
   
-  return $function($solr, $qry, $offset, $count, $fq, $sortby, $plugin_s4w_settings);
+  return $function($dezi, $qry, $offset, $count, $fq, $sortby, $plugin_s4w_settings);
 }
 
-function s4w_master_query($solr, $qry, $offset, $count, $fq, $sortby, &$plugin_s4w_settings) {
+function s4w_master_query($dezi, $qry, $offset, $count, $fq, $sortby, &$plugin_s4w_settings) {
     $response = NULL;
     $facet_fields = array();
     $number_of_tags = $plugin_s4w_settings['s4w_max_display_tags'];
@@ -999,7 +999,7 @@ function s4w_master_query($solr, $qry, $offset, $count, $fq, $sortby, &$plugin_s
         }
     }   	
     
-    if ( $solr ) {
+    if ( $dezi ) {
         $params = array();
         $params['defType'] = 'dismax';
         $params['qf'] = 'tagssrch^5 title^10 categoriessrch^5 content^3.5 comments^1.5'; // TODO : Add "_srch" custom fields ?
@@ -1025,13 +1025,13 @@ function s4w_master_query($solr, $qry, $offset, $count, $fq, $sortby, &$plugin_s
         }
 
         try { 
-            $response = $solr->search($qry, $offset, $count, $params);
+            $response = $dezi->search($qry, $offset, $count, $params);
             if ( ! $response->getHttpStatus() == 200 ) { 
                 $response = NULL; 
             }
         }
         catch(Exception $e) {
-            syslog(LOG_ERR, "failed to query solr for " . print_r($qry, true) . print_r($params,true));
+            syslog(LOG_ERR, "failed to query dezi for " . print_r($qry, true) . print_r($params,true));
             $response = NULL;
         }
     }
@@ -1062,12 +1062,12 @@ function s4w_options_init() {
  * @return $options sanitised values
  */
 function s4w_sanitise_options($options) {
-  $options['s4w_solr_host'] = wp_filter_nohtml_kses($options['s4w_solr_host']);
-  $options['s4w_solr_port'] = absint($options['s4w_solr_port']);
-  $options['s4w_solr_path'] = wp_filter_nohtml_kses($options['s4w_solr_path']);
-  $options['s4w_solr_update_host'] = wp_filter_nohtml_kses($options['s4w_solr_update_host']);
-  $options['s4w_solr_update_port'] = absint($options['s4w_solr_update_port']);
-  $options['s4w_solr_update_path'] = wp_filter_nohtml_kses($options['s4w_solr_update_path']);  
+  $options['s4w_dezi_host'] = wp_filter_nohtml_kses($options['s4w_dezi_host']);
+  $options['s4w_dezi_port'] = absint($options['s4w_dezi_port']);
+  $options['s4w_dezi_path'] = wp_filter_nohtml_kses($options['s4w_dezi_path']);
+  $options['s4w_dezi_update_host'] = wp_filter_nohtml_kses($options['s4w_dezi_update_host']);
+  $options['s4w_dezi_update_port'] = absint($options['s4w_dezi_update_port']);
+  $options['s4w_dezi_update_path'] = wp_filter_nohtml_kses($options['s4w_dezi_update_path']);  
   $options['s4w_index_pages'] = absint($options['s4w_index_pages']);
   $options['s4w_index_posts'] = absint($options['s4w_index_posts']);
   $options['s4w_index_comments'] = absint($options['s4w_index_comments']); 
@@ -1151,10 +1151,10 @@ function s4w_add_pages() {
 }
 
 function s4w_options_page() {
-    if ( file_exists ( dirname(__FILE__) . '/solr-options-page.php' )) {
-        include( dirname(__FILE__) . '/solr-options-page.php' );
+    if ( file_exists ( dirname(__FILE__) . '/dezi-options-page.php' )) {
+        include( dirname(__FILE__) . '/dezi-options-page.php' );
     } else {
-        _e("<p>Couldn't locate the options page.</p>", 'solr4wp');
+        _e("<p>Couldn't locate the options page.</p>", 'dezi4wp');
     }
 }
 
@@ -1168,26 +1168,26 @@ function s4w_admin_head() {
     var $j = jQuery.noConflict();
     
     function switch1() {
-        if ($j('#solrconnect_single').is(':checked')) {
-            $j('#solr_admin_tab2').css('display', 'block');
-            $j('#solr_admin_tab2_btn').addClass('solr_admin_on');         
-            $j('#solr_admin_tab3').css('display', 'none');
-            $j('#solr_admin_tab3_btn').removeClass('solr_admin_on');            
+        if ($j('#deziconnect_single').is(':checked')) {
+            $j('#dezi_admin_tab2').css('display', 'block');
+            $j('#dezi_admin_tab2_btn').addClass('dezi_admin_on');         
+            $j('#dezi_admin_tab3').css('display', 'none');
+            $j('#dezi_admin_tab3_btn').removeClass('dezi_admin_on');            
         }
-        if ($j('#solrconnect_separated').is(':checked')) {
-            $j('#solr_admin_tab2').css('display', 'none');
-            $j('#solr_admin_tab2_btn').removeClass('solr_admin_on');  
-            $j('#solr_admin_tab3').css('display', 'block');
-            $j('#solr_admin_tab3_btn').addClass('solr_admin_on');                   
+        if ($j('#deziconnect_separated').is(':checked')) {
+            $j('#dezi_admin_tab2').css('display', 'none');
+            $j('#dezi_admin_tab2_btn').removeClass('dezi_admin_on');  
+            $j('#dezi_admin_tab3').css('display', 'block');
+            $j('#dezi_admin_tab3_btn').addClass('dezi_admin_on');                   
         }        
     }
  
     
     function doLoad($type, $prev) {
         if ($prev == null) {
-            $j.post("options-general.php?page=solr-for-wordpress/solr-for-wordpress.php", {method: "load", type: $type}, handleResults, "json");
+            $j.post("options-general.php?page=dezi-for-wordpress/dezi-for-wordpress.php", {method: "load", type: $type}, handleResults, "json");
         } else {
-            $j.post("options-general.php?page=solr-for-wordpress/solr-for-wordpress.php", {method: "load", type: $type, prev: $prev}, handleResults, "json");
+            $j.post("options-general.php?page=dezi-for-wordpress/dezi-for-wordpress.php", {method: "load", type: $type, prev: $prev}, handleResults, "json");
         }
     }
     
@@ -1317,21 +1317,21 @@ class s4w_MLTWidget extends WP_Widget {
         
         $showauthor = $instance['showauthor'];
 
-        $solr = s4w_get_solr();
+        $dezi = s4w_get_dezi();
         $response = NULL;
 
-        if ((!is_single() && !is_page()) || !$solr) {
+        if ((!is_single() && !is_page()) || !$dezi) {
             return;
         }
         
         $params = array();
-        $qry = 'permalink:' . $solr->escape(get_permalink());
+        $qry = 'permalink:' . $dezi->escape(get_permalink());
         $params['fl'] = 'title,permalink,author';
         $params['mlt'] = 'true';
         $params['mlt.count'] = $count;
         $params['mlt.fl'] = 'title,content';
 
-        $response = $solr->search($qry, 0, 1, $params);
+        $response = $dezi->search($qry, 0, 1, $params);
         if ( ! $response->getHttpStatus() == 200 ) { 
             return;
         }
@@ -1390,10 +1390,10 @@ class s4w_MLTWidget extends WP_Widget {
 }
 
 function s4w_autocomplete($q, $limit) {
-    $solr = s4w_get_solr();
+    $dezi = s4w_get_dezi();
     $response = NULL;
 
-    if (!$solr) {
+    if (!$dezi) {
         return;
     }
     
@@ -1406,7 +1406,7 @@ function s4w_autocomplete($q, $limit) {
     $params['terms.limit'] = $limit;
     $params['qt'] = '/terms';
 
-    $response = $solr->search($q, 0, $limit, $params);
+    $response = $dezi->search($q, 0, $limit, $params);
     if ( ! $response->getHttpStatus() == 200 ) { 
         return;
     }

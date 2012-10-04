@@ -28,11 +28,11 @@ $s4w_settings = s4w_get_option('plugin_s4w_settings');
 $post_types = s4w_get_all_post_types();
 
 #set defaults if not initialized
-if ($s4w_settings['s4w_solr_initialized'] != 1) {
+if ($s4w_settings['s4w_dezi_initialized'] != 1) {
   
   $options['s4w_index_all_sites'] = 0;
-  $options['s4w_server']['info']['single']= array('host'=>'localhost','port'=>8983, 'path'=>'/solr');
-  $options['s4w_server']['info']['master']= array('host'=>'localhost','port'=>8983, 'path'=>'/solr');
+  $options['s4w_server']['info']['single']= array('host'=>'localhost','port'=>8983, 'path'=>'/dezi');
+  $options['s4w_server']['info']['master']= array('host'=>'localhost','port'=>8983, 'path'=>'/dezi');
   $options['s4w_server']['type']['search'] = 'master';
   $options['s4w_server']['type']['update'] = 'master';
   
@@ -55,7 +55,7 @@ if ($s4w_settings['s4w_solr_initialized'] != 1) {
   $options['s4w_exclude_pages'] = '';  
   $options['s4w_num_results'] = 5;
   $options['s4w_cat_as_taxo'] = 1;
-  $options['s4w_solr_initialized'] = 1;
+  $options['s4w_dezi_initialized'] = 1;
   $options['s4w_max_display_tags'] = 10;
   $options['s4w_facet_on_categories'] = 1;
   $options['s4w_facet_on_taxonomy'] = 1;
@@ -64,7 +64,7 @@ if ($s4w_settings['s4w_solr_initialized'] != 1) {
   $options['s4w_facet_on_type'] = 1;
   $options['s4w_enable_dym'] = 1;
   $options['s4w_index_comments'] = 1;
-  $options['s4w_connect_type'] = 'solr';
+  $options['s4w_connect_type'] = 'dezi';
   $options['s4w_index_custom_fields'] =  array();
   $options['s4w_facet_on_custom_fields'] =  array();
   $options['s4w_index_custom_fields'] = '';  
@@ -107,7 +107,7 @@ if ($_POST['action'] == 'update') {
     $value = $_POST['settings'][$option];
 
     switch ($option) {
-      case 's4w_solr_initialized':
+      case 's4w_dezi_initialized':
         $value = trim($old_value);
         break;
       
@@ -128,7 +128,7 @@ if ($_POST['action'] == 'update') {
   }
   // if we are in single server mode set the server types to master
   // and configure the master server to the values of the single server
-  if ($s4w_settings['s4w_connect_type'] =='solr_single'){
+  if ($s4w_settings['s4w_connect_type'] =='dezi_single'){
     $s4w_settings['s4w_server']['info']['master']= $s4w_settings['s4w_server']['info']['single'];
     $s4w_settings['s4w_server']['type']['search'] = 'master';
     $s4w_settings['s4w_server']['type']['update'] = 'master';
@@ -147,7 +147,7 @@ if ($_POST['action'] == 'update') {
   //otherwise fields that need to run s4w_filter_list2str will come up with nothin
   $s4w_settings = s4w_get_option('plugin_s4w_settings');
   ?>
-  <div id="message" class="updated fade"><p><strong><?php _e('Success!', 'solr4wp') ?></strong></p></div>
+  <div id="message" class="updated fade"><p><strong><?php _e('Success!', 'dezi4wp') ?></strong></p></div>
   <?php
 }
 
@@ -171,48 +171,48 @@ function s4w_checkConnectOption($optionType, $connectType) {
 if ($_POST['s4w_ping']) {
     if (s4w_ping_server()) {
 ?>
-<div id="message" class="updated fade"><p><strong><?php _e('Ping Success!', 'solr4wp') ?></strong></p></div>
+<div id="message" class="updated fade"><p><strong><?php _e('Ping Success!', 'dezi4wp') ?></strong></p></div>
 <?php
     } else {
 ?>
-    <div id="message" class="updated fade"><p><strong><?php _e('Ping Failed!', 'solr4wp') ?></strong></p></div>
+    <div id="message" class="updated fade"><p><strong><?php _e('Ping Failed!', 'dezi4wp') ?></strong></p></div>
 <?php
     }
 } else if ($_POST['s4w_deleteall']) {
     s4w_delete_all();
 ?>
-    <div id="message" class="updated fade"><p><strong><?php _e('All Indexed Pages Deleted!', 'solr4wp') ?></strong></p></div>
+    <div id="message" class="updated fade"><p><strong><?php _e('All Indexed Pages Deleted!', 'dezi4wp') ?></strong></p></div>
 <?php
 } else if ($_POST['s4w_optimize']) {
     s4w_optimize();
 ?>
-    <div id="message" class="updated fade"><p><strong><?php _e('Index Optimized!', 'solr4wp') ?></strong></p></div>
+    <div id="message" class="updated fade"><p><strong><?php _e('Index Optimized!', 'dezi4wp') ?></strong></p></div>
 <?php
 } else if ($_POST['s4w_init_blogs']) {
     s4w_copy_config_to_all_blogs();
     ?>
-        <div id="message" class="updated fade"><p><strong><?php _e('Solr for Wordpress Configured for All Blogs!', 'solr4wp') ?></strong></p></div>
+        <div id="message" class="updated fade"><p><strong><?php _e('Solr for Wordpress Configured for All Blogs!', 'dezi4wp') ?></strong></p></div>
 
 <?php } ?>
 <div class="wrap">
-<h2><?php _e('Solr For WordPress', 'solr4wp') ?></h2>
+<h2><?php _e('Solr For WordPress', 'dezi4wp') ?></h2>
 
-<form method="post" action="options-general.php?page=solr-for-wordpress/solr-for-wordpress.php">
-<h3><?php _e('Configure Solr', 'solr4wp') ?></h3>
+<form method="post" action="options-general.php?page=dezi-for-wordpress/dezi-for-wordpress.php">
+<h3><?php _e('Configure Solr', 'dezi4wp') ?></h3>
 
-<div class="solr_admin clearfix">
-	<div class="solr_adminR">
-		<div class="solr_adminR2" id="solr_admin_tab2">
-			<label><?php _e('Solr Host', 'solr4wp') ?></label>
+<div class="dezi_admin clearfix">
+	<div class="dezi_adminR">
+		<div class="dezi_adminR2" id="dezi_admin_tab2">
+			<label><?php _e('Solr Host', 'dezi4wp') ?></label>
 			<input name="settings[s4w_server][type][update]" type="hidden" value="master" />
 			<input name="settings[s4w_server][type][search]" type="hidden" value="master" />
 			<p><input type="text" name="settings[s4w_server][info][single][host]" value="<?php echo $s4w_settings['s4w_server']['info']['single']['host']?>" /></p>
-			<label><?php _e('Solr Port', 'solr4wp') ?></label>
+			<label><?php _e('Solr Port', 'dezi4wp') ?></label>
 			<p><input type="text" name="settings[s4w_server][info][single][port]" value="<?php echo $s4w_settings['s4w_server']['info']['single']['port']?>" /></p>
-			<label><?php _e('Solr Path', 'solr4wp') ?></label>
+			<label><?php _e('Solr Path', 'dezi4wp') ?></label>
 			<p><input type="text" name="settings[s4w_server][info][single][path]" value="<?php echo $s4w_settings['s4w_server']['info']['single']['path']?>" /></p>
 		</div>
-		<div class="solr_adminR2" id="solr_admin_tab3">
+		<div class="dezi_adminR2" id="dezi_admin_tab3">
 		  <table>
   		  <tr>
   		  <?php 
@@ -228,14 +228,14 @@ if ($_POST['s4w_ping']) {
   		      $new_id =(is_numeric($server_id)) ? 'slave_'.$server_id : $server_id ;
   		  ?>
     		  <td>
-    		  <label><?php _e('ServerID', 'solr4wp') ?>: <strong><?php echo $new_id; ?></strong></label>
+    		  <label><?php _e('ServerID', 'dezi4wp') ?>: <strong><?php echo $new_id; ?></strong></label>
     		  <p>Update Server: &nbsp;&nbsp;<input name="settings[s4w_server][type][update]" type="radio" value="<?php echo $new_id?>" <?php s4w_checkConnectOption($s4w_settings['s4w_server']['type']['update'], $new_id); ?> /></p>
     			<p>Search Server: &nbsp;&nbsp;<input name="settings[s4w_server][type][search]" type="radio" value="<?php echo $new_id?>" <?php s4w_checkConnectOption($s4w_settings['s4w_server']['type']['search'], $new_id); ?> /></p>
-    		  <label><?php _e('Solr Host', 'solr4wp') ?></label>
+    		  <label><?php _e('Solr Host', 'dezi4wp') ?></label>
     			<p><input type="text" name="settings[s4w_server][info][<?php echo $new_id ?>][host]" value="<?php echo $server['host'] ?>" /></p>
-    			<label><?php _e('Solr Port', 'solr4wp') ?></label>
+    			<label><?php _e('Solr Port', 'dezi4wp') ?></label>
     			<p><input type="text" name="settings[s4w_server][info][<?php echo $new_id ?>][port]" value="<?php echo $server['port'] ?>" /></p>
-    			<label><?php _e('Solr Path', 'solr4wp') ?></label>
+    			<label><?php _e('Solr Path', 'dezi4wp') ?></label>
     			<p><input type="text" name="settings[s4w_server][info][<?php echo $new_id ?>][path]" value="<?php echo $server['path'] ?>" /></p>		  
     			</td>
     			<?php 
@@ -246,16 +246,16 @@ if ($_POST['s4w_ping']) {
 		</div>		
 	</div>
 	<ol>
-		<li id="solr_admin_tab1_btn" class="solr_admin_tab1">
+		<li id="dezi_admin_tab1_btn" class="dezi_admin_tab1">
 		</li>
-		<li id="solr_admin_tab2_btn" class="solr_admin_tab2">
-			<h4><input id="solrconnect_single" name="settings[s4w_connect_type]" type="radio" value="solr_single" <?php s4w_checkConnectOption($s4w_settings['s4w_connect_type'], 'solr_single'); ?> onclick="switch1();" />Single Solr Server</h4>
+		<li id="dezi_admin_tab2_btn" class="dezi_admin_tab2">
+			<h4><input id="deziconnect_single" name="settings[s4w_connect_type]" type="radio" value="dezi_single" <?php s4w_checkConnectOption($s4w_settings['s4w_connect_type'], 'dezi_single'); ?> onclick="switch1();" />Single Solr Server</h4>
 			<ol>
-				<li>Download, install and configure your own <a href="http://lucene.apache.org/solr/">Apache Solr</a> instance</li>
+				<li>Download, install and configure your own <a href="http://lucene.apache.org/dezi/">Apache Solr</a> instance</li>
 			</ol>
 		</li>
-		<li id="solr_admin_tab3_btn" class="solr_admin_tab3">
-			<h4><input id="solrconnect_separated" name="settings[s4w_connect_type]" type="radio" value="solr_separated" <?php s4w_checkConnectOption($s4w_settings['s4w_connect_type'], 'solr_separated'); ?> onclick="switch1();" />Separated Solr Servers</h4>
+		<li id="dezi_admin_tab3_btn" class="dezi_admin_tab3">
+			<h4><input id="deziconnect_separated" name="settings[s4w_connect_type]" type="radio" value="dezi_separated" <?php s4w_checkConnectOption($s4w_settings['s4w_connect_type'], 'dezi_separated'); ?> onclick="switch1();" />Separated Solr Servers</h4>
 			<ol>
 				<li>Separate URL's for updates and searches.</li>
 			</ol>
@@ -263,24 +263,24 @@ if ($_POST['s4w_ping']) {
 	</ol>
 </div>
 <hr />
-<h3><?php _e('Indexing Options', 'solr4wp') ?></h3>
+<h3><?php _e('Indexing Options', 'dezi4wp') ?></h3>
 <table class="form-table">
   <?php 
   foreach ($post_types as $post_key => $post_type) {?>
     <tr valign="top">
-        <th scope="row" style="width:200px;"><?php _e('Index '.ucfirst($post_type), 'solr4wp') ?></th>
+        <th scope="row" style="width:200px;"><?php _e('Index '.ucfirst($post_type), 'dezi4wp') ?></th>
         <td style="width:10px;float:left;"><input type="checkbox" name="settings[s4w_content][index][<?php echo $post_type?>]" value="1" <?php echo s4w_checkCheckbox(FALSE, $s4w_settings['s4w_content']['index'], $post_type); ?> /></td>
 
-        <th scope="row" style="width:200px;"><?php _e('Remove '.ucfirst($post_type).' on Delete', 'solr4wp') ?></th>
+        <th scope="row" style="width:200px;"><?php _e('Remove '.ucfirst($post_type).' on Delete', 'dezi4wp') ?></th>
         <td style="width:10px;float:left;"><input type="checkbox" name="settings[s4w_content][delete][<?php echo $post_type?>]" value="1" <?php echo s4w_checkCheckbox(FALSE, $s4w_settings['s4w_content']['delete'], $post_type); ?> /></td>
 
-        <th scope="row" style="width:200px;"><?php _e('Remove '.ucfirst($post_type).' on Status Change', 'solr4wp') ?></th>
+        <th scope="row" style="width:200px;"><?php _e('Remove '.ucfirst($post_type).' on Status Change', 'dezi4wp') ?></th>
         <td style="width:10px;float:left;"><input type="checkbox" name="settings[s4w_content][private][<?php echo $post_type?>]" value="1" <?php echo s4w_checkCheckbox(FALSE, $s4w_settings['s4w_content']['private'], $post_type); ?> /></td>
     </tr>
   <?php }?>
 
     <tr valign="top">
-        <th scope="row" style="width:200px;"><?php _e('Index Comments', 'solr4wp') ?></th>
+        <th scope="row" style="width:200px;"><?php _e('Index Comments', 'dezi4wp') ?></th>
         <td style="width:10px;float:left;"><input type="checkbox" name="settings[s4w_index_comments]" value="1" <?php echo s4w_checkCheckbox($s4w_settings['s4w_index_comments']); ?> /></td>
     </tr>
         
@@ -290,7 +290,7 @@ if ($_POST['s4w_ping']) {
     ?>
     
     <tr valign="top">
-        <th scope="row" style="width:200px;"><?php _e('Index all Sites', 'solr4wp') ?></th>
+        <th scope="row" style="width:200px;"><?php _e('Index all Sites', 'dezi4wp') ?></th>
         <td style="width:10px;float:left;"><input type="checkbox" name="settings[s4w_index_all_sites]" value="1" <?php echo s4w_checkCheckbox($s4w_settings['s4w_index_all_sites']); ?> /></td>
     </tr>
     <?php
@@ -298,67 +298,67 @@ if ($_POST['s4w_ping']) {
     ?>
     <tr valign="top">
         <th scope="row"><?php _e('Index custom fields (comma separated names list)') ?></th>
-        <td><input type="text" name="settings[s4w_index_custom_fields]" value="<?php print( s4w_filter_list2str($s4w_settings['s4w_index_custom_fields'], 'solr4wp')); ?>" /></td>
+        <td><input type="text" name="settings[s4w_index_custom_fields]" value="<?php print( s4w_filter_list2str($s4w_settings['s4w_index_custom_fields'], 'dezi4wp')); ?>" /></td>
     </tr>
     <tr valign="top">
         <th scope="row"><?php _e('Excludes Posts or Pages (comma separated ids list)') ?></th>
-        <td><input type="text" name="settings[s4w_exclude_pages]" value="<?php print(s4w_filter_list2str($s4w_settings['s4w_exclude_pages'], 'solr4wp')); ?>" /></td>
+        <td><input type="text" name="settings[s4w_exclude_pages]" value="<?php print(s4w_filter_list2str($s4w_settings['s4w_exclude_pages'], 'dezi4wp')); ?>" /></td>
     </tr>
 </table>
 <hr />
-<h3><?php _e('Result Options', 'solr4wp') ?></h3>
+<h3><?php _e('Result Options', 'dezi4wp') ?></h3>
 <table class="form-table">
     <tr valign="top">
-        <th scope="row" style="width:200px;"><?php _e('Output Result Info', 'solr4wp') ?></th>
+        <th scope="row" style="width:200px;"><?php _e('Output Result Info', 'dezi4wp') ?></th>
         <td style="width:10px;float:left;"><input type="checkbox" name="settings[s4w_output_info]" value="1" <?php echo s4w_checkCheckbox($s4w_settings['s4w_output_info']); ?> /></td>
-        <th scope="row" style="width:200px;float:left;margin-left:20px;"><?php _e('Output Result Pager', 'solr4wp') ?></th>
+        <th scope="row" style="width:200px;float:left;margin-left:20px;"><?php _e('Output Result Pager', 'dezi4wp') ?></th>
         <td style="width:10px;float:left;"><input type="checkbox" name="settings[s4w_output_pager]" value="1" <?php echo s4w_checkCheckbox($s4w_settings['s4w_output_pager']); ?> /></td>
     </tr>
  
     <tr valign="top">
-        <th scope="row" style="width:200px;"><?php _e('Output Facets', 'solr4wp') ?></th>
+        <th scope="row" style="width:200px;"><?php _e('Output Facets', 'dezi4wp') ?></th>
         <td style="width:10px;float:left;"><input type="checkbox" name="settings[s4w_output_facets]" value="1" <?php echo s4w_checkCheckbox($s4w_settings['s4w_output_facets']); ?> /></td>
-        <th scope="row" style="width:200px;float:left;margin-left:20px;"><?php _e('Category Facet as Taxonomy', 'solr4wp') ?></th>
+        <th scope="row" style="width:200px;float:left;margin-left:20px;"><?php _e('Category Facet as Taxonomy', 'dezi4wp') ?></th>
         <td style="width:10px;float:left;"><input type="checkbox" name="settings[s4w_cat_as_taxo]" value="1" <?php echo s4w_checkCheckbox($s4w_settings['s4w_cat_as_taxo']); ?> /></td>
     </tr>
 
     <tr valign="top">
-        <th scope="row" style="width:200px;"><?php _e('Categories as Facet', 'solr4wp') ?></th>
+        <th scope="row" style="width:200px;"><?php _e('Categories as Facet', 'dezi4wp') ?></th>
         <td style="width:10px;float:left;"><input type="checkbox" name="settings[s4w_facet_on_categories]" value="1" <?php echo s4w_checkCheckbox($s4w_settings['s4w_facet_on_categories']); ?> /></td>
-        <th scope="row" style="width:200px;float:left;margin-left:20px;"><?php _e('Tags as Facet', 'solr4wp') ?></th>
+        <th scope="row" style="width:200px;float:left;margin-left:20px;"><?php _e('Tags as Facet', 'dezi4wp') ?></th>
         <td style="width:10px;float:left;"><input type="checkbox" name="settings[s4w_facet_on_tags]" value="1" <?php echo s4w_checkCheckbox($s4w_settings['s4w_facet_on_tags']); ?> /></td>
     </tr>
     
     <tr valign="top">
-        <th scope="row" style="width:200px;"><?php _e('Author as Facet', 'solr4wp') ?></th>
+        <th scope="row" style="width:200px;"><?php _e('Author as Facet', 'dezi4wp') ?></th>
         <td style="width:10px;float:left;"><input type="checkbox" name="settings[s4w_facet_on_author]" value="1" <?php echo s4w_checkCheckbox($s4w_settings['s4w_facet_on_author']); ?> /></td>
-        <th scope="row" style="width:200px;float:left;margin-left:20px;"><?php _e('Type as Facet', 'solr4wp') ?></th>
+        <th scope="row" style="width:200px;float:left;margin-left:20px;"><?php _e('Type as Facet', 'dezi4wp') ?></th>
         <td style="width:10px;float:left;"><input type="checkbox" name="settings[s4w_facet_on_type]" value="1" <?php echo s4w_checkCheckbox($s4w_settings['s4w_facet_on_type']); ?> /></td>
     </tr>
 
      <tr valign="top">
-         <th scope="row" style="width:200px;"><?php _e('Taxonomy as Facet', 'solr4wp') ?></th>
+         <th scope="row" style="width:200px;"><?php _e('Taxonomy as Facet', 'dezi4wp') ?></th>
          <td style="width:10px;float:left;"><input type="checkbox" name="settings[s4w_facet_on_taxonomy]" value="1" <?php echo s4w_checkCheckbox($s4w_settings['s4w_facet_on_taxonomy']); ?> /></td>
       </tr>
       
     <tr valign="top">
         <th scope="row"><?php _e('Custom fields as Facet (comma separated ordered names list)') ?></th>
-        <td><input type="text" name="settings[s4w_facet_on_custom_fields]" value="<?php print( s4w_filter_list2str($s4w_settings['s4w_facet_on_custom_fields'], 'solr4wp')); ?>" /></td>
+        <td><input type="text" name="settings[s4w_facet_on_custom_fields]" value="<?php print( s4w_filter_list2str($s4w_settings['s4w_facet_on_custom_fields'], 'dezi4wp')); ?>" /></td>
     </tr>
 
     <tr valign="top">
-        <th scope="row" style="width:200px;"><?php _e('Enable Spellchecking', 'solr4wp') ?></th>
+        <th scope="row" style="width:200px;"><?php _e('Enable Spellchecking', 'dezi4wp') ?></th>
         <td style="width:10px;float:left;"><input type="checkbox" name="settings[s4w_enable_dym]" value="1" <?php echo s4w_checkCheckbox($s4w_settings['s4w_enable_dym']); ?> /></td>
     </tr>
                    
     <tr valign="top">
-        <th scope="row"><?php _e('Number of Results Per Page', 'solr4wp') ?></th>
-        <td><input type="text" name="settings[s4w_num_results]" value="<?php _e($s4w_settings['s4w_num_results'], 'solr4wp'); ?>" /></td>
+        <th scope="row"><?php _e('Number of Results Per Page', 'dezi4wp') ?></th>
+        <td><input type="text" name="settings[s4w_num_results]" value="<?php _e($s4w_settings['s4w_num_results'], 'dezi4wp'); ?>" /></td>
     </tr>   
     
     <tr valign="top">
-        <th scope="row"><?php _e('Max Number of Tags to Display', 'solr4wp') ?></th>
-        <td><input type="text" name="settings[s4w_max_display_tags]" value="<?php _e($s4w_settings['s4w_max_display_tags'], 'solr4wp'); ?>" /></td>
+        <th scope="row"><?php _e('Max Number of Tags to Display', 'dezi4wp') ?></th>
+        <td><input type="text" name="settings[s4w_max_display_tags]" value="<?php _e($s4w_settings['s4w_max_display_tags'], 'dezi4wp'); ?>" /></td>
     </tr>
 </table>
 <hr />
@@ -366,23 +366,23 @@ if ($_POST['s4w_ping']) {
 
 <p class="submit">
 <input type="hidden" name="action" value="update" />
-<input id="settingsbutton" type="submit" class="button-primary" value="<?php _e('Save Changes', 'solr4wp') ?>" />
+<input id="settingsbutton" type="submit" class="button-primary" value="<?php _e('Save Changes', 'dezi4wp') ?>" />
 </p>
 
 </form>
 <hr />
-<form method="post" action="options-general.php?page=solr-for-wordpress/solr-for-wordpress.php">
-<h3><?php _e('Actions', 'solr4wp') ?></h3>
+<form method="post" action="options-general.php?page=dezi-for-wordpress/dezi-for-wordpress.php">
+<h3><?php _e('Actions', 'dezi4wp') ?></h3>
 <table class="form-table">
     <tr valign="top">
-        <th scope="row"><?php _e('Check Server Settings', 'solr4wp') ?></th>
-        <td><input type="submit" class="button-primary" name="s4w_ping" value="<?php _e('Execute', 'solr4wp') ?>" /></td>
+        <th scope="row"><?php _e('Check Server Settings', 'dezi4wp') ?></th>
+        <td><input type="submit" class="button-primary" name="s4w_ping" value="<?php _e('Execute', 'dezi4wp') ?>" /></td>
     </tr>
 
     <?php if(is_multisite()) { ?>
     <tr valign="top">
-        <th scope="row"><?php _e('Push Solr Configuration to All Blogs', 'solr4wp') ?></th>
-        <td><input type="submit" class="button-primary" name="s4w_init_blogs" value="<?php _e('Execute', 'solr4wp') ?>" /></td>
+        <th scope="row"><?php _e('Push Solr Configuration to All Blogs', 'dezi4wp') ?></th>
+        <td><input type="submit" class="button-primary" name="s4w_init_blogs" value="<?php _e('Execute', 'dezi4wp') ?>" /></td>
     </tr>
     <?php } ?>
     
@@ -391,8 +391,8 @@ if ($_POST['s4w_ping']) {
     ?>
 
       <tr valign="top">
-          <th scope="row"><?php _e('Index all '.ucfirst($post_type), 'solr4wp') ?></th>
-          <td><input type="submit" class="button-primary content_load" name="s4w_content_load[<?php echo $post_type?>]" value="<?php _e('Execute', 'solr4wp') ?>" /></td>
+          <th scope="row"><?php _e('Index all '.ucfirst($post_type), 'dezi4wp') ?></th>
+          <td><input type="submit" class="button-primary content_load" name="s4w_content_load[<?php echo $post_type?>]" value="<?php _e('Execute', 'dezi4wp') ?>" /></td>
       </tr>
     <?php  
       }
@@ -401,19 +401,19 @@ if ($_POST['s4w_ping']) {
     if (count($s4w_settings['s4w_content']['index'])>0) {
     ?>
       <tr valign="top">
-          <th scope="row"><?php _e('Index All Content', 'solr4wp') ?></th>
-          <td><input type="submit" class="button-primary content_load" name="s4w_content_load[all]" value="<?php _e('Execute', 'solr4wp') ?>" /></td>
+          <th scope="row"><?php _e('Index All Content', 'dezi4wp') ?></th>
+          <td><input type="submit" class="button-primary content_load" name="s4w_content_load[all]" value="<?php _e('Execute', 'dezi4wp') ?>" /></td>
       </tr>
     <?php }?>
     
     <tr valign="top">
-        <th scope="row"><?php _e('Optimize Index', 'solr4wp') ?></th>
-        <td><input type="submit" class="button-primary" name="s4w_optimize" value="<?php _e('Execute', 'solr4wp') ?>" /></td>
+        <th scope="row"><?php _e('Optimize Index', 'dezi4wp') ?></th>
+        <td><input type="submit" class="button-primary" name="s4w_optimize" value="<?php _e('Execute', 'dezi4wp') ?>" /></td>
     </tr>
         
     <tr valign="top">
-        <th scope="row"><?php _e('Delete All', 'solr4wp') ?></th>
-        <td><input type="submit" class="button-primary" name="s4w_deleteall" value="<?php _e('Execute', 'solr4wp') ?>" /></td>
+        <th scope="row"><?php _e('Delete All', 'dezi4wp') ?></th>
+        <td><input type="submit" class="button-primary" name="s4w_deleteall" value="<?php _e('Execute', 'dezi4wp') ?>" /></td>
     </tr>
 </table>
 </form>
