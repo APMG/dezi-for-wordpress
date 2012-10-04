@@ -41,12 +41,12 @@ if (version_compare($wp_version, '3.0', '<')) {
 
 require_once(dirname(__FILE__) . '/SolrPhpClient/Apache/Solr/Service.php');
 
-function s4w_get_option() {
+function dezi4w_get_option() {
     $indexall = FALSE;
-    $option = 'plugin_s4w_settings';
+    $option = 'plugin_dezi4w_settings';
     if (is_multisite()) {
-        $plugin_s4w_settings = get_site_option($option);
-        $indexall = $plugin_s4w_settings['s4w_index_all_sites'];
+        $plugin_dezi4w_settings = get_site_option($option);
+        $indexall = $plugin_dezi4w_settings['dezi4w_index_all_sites'];
     }
     
     if ($indexall) {
@@ -56,12 +56,12 @@ function s4w_get_option() {
     }
 }
 
-function s4w_update_option($optval) {
+function dezi4w_update_option($optval) {
     $indexall = FALSE;
-    $option = 'plugin_s4w_settings';
+    $option = 'plugin_dezi4w_settings';
     if (is_multisite()) {
-       $plugin_s4w_settings = get_site_option($option);
-       $indexall = $plugin_s4w_settings['s4w_index_all_sites'];
+       $plugin_dezi4w_settings = get_site_option($option);
+       $indexall = $plugin_dezi4w_settings['dezi4w_index_all_sites'];
     }
     
     if ($indexall) {
@@ -75,16 +75,16 @@ function s4w_update_option($optval) {
  * @param $server_id string/int its either master or array index
  * @return dezi service object
  */
-function s4w_get_dezi($server_id = NULL) {
+function dezi4w_get_dezi($server_id = NULL) {
   # get the connection options
-  $plugin_s4w_settings = s4w_get_option();
+  $plugin_dezi4w_settings = dezi4w_get_option();
   //if the provided server_id does not exist use the default id 'master'
-  if(!$plugin_s4w_settings['s4w_server']['info'][$server_id]['host']) {
-    $server_id = $plugin_s4w_settings['s4w_server']['type']['update'];
+  if(!$plugin_dezi4w_settings['dezi4w_server']['info'][$server_id]['host']) {
+    $server_id = $plugin_dezi4w_settings['dezi4w_server']['type']['update'];
   }
-  $host = $plugin_s4w_settings['s4w_server']['info'][$server_id]['host'];
-  $port = $plugin_s4w_settings['s4w_server']['info'][$server_id]['port'];
-  $path = $plugin_s4w_settings['s4w_server']['info'][$server_id]['path'];
+  $host = $plugin_dezi4w_settings['dezi4w_server']['info'][$server_id]['host'];
+  $port = $plugin_dezi4w_settings['dezi4w_server']['info'][$server_id]['port'];
+  $path = $plugin_dezi4w_settings['dezi4w_server']['info'][$server_id]['path'];
   # double check everything has been set
   if ( ! ($host and $port and $path) ) {
     syslog(LOG_ERR,"host, port or path are empty, host:$host, port:$port, path:$path");
@@ -104,8 +104,8 @@ function s4w_get_dezi($server_id = NULL) {
  *        server than default provide name
  * @return boolean
  */
-function s4w_ping_server($server_id = NULL) {
-  $dezi = s4w_get_dezi($server);
+function dezi4w_ping_server($server_id = NULL) {
+  $dezi = dezi4w_get_dezi($server);
   $ping = FALSE;
   # if we want to check if the server is alive, ping it
   if ($dezi->ping()) {
@@ -114,16 +114,16 @@ function s4w_ping_server($server_id = NULL) {
   return $ping;
 }
 
-function s4w_build_document( $post_info, $domain = NULL, $path = NULL) {
+function dezi4w_build_document( $post_info, $domain = NULL, $path = NULL) {
     global $blog_id;
     global $current_blog;
 
     $doc = NULL;
-    $plugin_s4w_settings = s4w_get_option();
-    $exclude_ids = $plugin_s4w_settings['s4w_exclude_pages'];
-    $categoy_as_taxonomy = $plugin_s4w_settings['s4w_cat_as_taxo'];
-    $index_comments = $plugin_s4w_settings['s4w_index_comments'];
-    $index_custom_fields = $plugin_s4w_settings['s4w_index_custom_fields'];
+    $plugin_dezi4w_settings = dezi4w_get_option();
+    $exclude_ids = $plugin_dezi4w_settings['dezi4w_exclude_pages'];
+    $categoy_as_taxonomy = $plugin_dezi4w_settings['dezi4w_cat_as_taxo'];
+    $index_comments = $plugin_dezi4w_settings['dezi4w_index_comments'];
+    $index_custom_fields = $plugin_dezi4w_settings['dezi4w_index_custom_fields'];
     
     if ($post_info) {
         
@@ -191,8 +191,8 @@ function s4w_build_document( $post_info, $domain = NULL, $path = NULL) {
         $doc->setField( 'author', $auth_info->display_name );
         $doc->setField( 'author_s', get_author_posts_url($auth_info->ID, $auth_info->user_nicename));
         $doc->setField( 'type', $post_info->post_type );
-        $doc->setField( 'date', s4w_format_date($post_info->post_date_gmt) );
-        $doc->setField( 'modified', s4w_format_date($post_info->post_modified_gmt) );
+        $doc->setField( 'date', dezi4w_format_date($post_info->post_date_gmt) );
+        $doc->setField( 'modified', dezi4w_format_date($post_info->post_modified_gmt) );
         $doc->setField( 'displaydate', $post_info->post_date );
         $doc->setField( 'displaymodified', $post_info->post_modified );
 
@@ -246,15 +246,15 @@ function s4w_build_document( $post_info, $domain = NULL, $path = NULL) {
     return $doc;
 }
 
-function s4w_format_date( $thedate ) {
+function dezi4w_format_date( $thedate ) {
     $datere = '/(\d{4}-\d{2}-\d{2})\s(\d{2}:\d{2}:\d{2})/';
     $replstr = '${1}T${2}Z';
     return preg_replace($datere, $replstr, $thedate);
 }
 
-function s4w_post( $documents, $commit = TRUE, $optimize = FALSE) { 
+function dezi4w_post( $documents, $commit = TRUE, $optimize = FALSE) { 
     try {
-        $dezi = s4w_get_dezi();
+        $dezi = dezi4w_get_dezi();
         if ( ! $dezi == NULL ) {
             
             if ($documents) {
@@ -280,9 +280,9 @@ function s4w_post( $documents, $commit = TRUE, $optimize = FALSE) {
     }
 }
 
-function s4w_optimize() {
+function dezi4w_optimize() {
     try {
-        $dezi = s4w_get_dezi();
+        $dezi = dezi4w_get_dezi();
         if ( ! $dezi == NULL ) {
             $dezi->optimize();
         }
@@ -291,9 +291,9 @@ function s4w_optimize() {
     }
 }
 
-function s4w_delete( $doc_id ) {
+function dezi4w_delete( $doc_id ) {
     try {
-        $dezi = s4w_get_dezi();
+        $dezi = dezi4w_get_dezi();
         if ( ! $dezi == NULL ) {
             $dezi->deleteById( $doc_id );
             $dezi->commit();
@@ -303,9 +303,9 @@ function s4w_delete( $doc_id ) {
     }
 }
 
-function s4w_delete_all() {
+function dezi4w_delete_all() {
     try {
-        $dezi = s4w_get_dezi();
+        $dezi = dezi4w_get_dezi();
         if ( ! $dezi == NULL ) {
             $dezi->deleteByQuery( '*:*' );
             $dezi->commit();
@@ -315,9 +315,9 @@ function s4w_delete_all() {
     }
 }
 
-function s4w_delete_blog($blogid) {
+function dezi4w_delete_blog($blogid) {
     try {
-        $dezi = s4w_get_dezi();
+        $dezi = dezi4w_get_dezi();
         if ( ! $dezi == NULL ) {
             $dezi->deleteByQuery( "blogid:{$blogid}" );
             $dezi->commit();
@@ -327,7 +327,7 @@ function s4w_delete_blog($blogid) {
     }
 }
 
-function s4w_load_blog_all($blogid) {
+function dezi4w_load_blog_all($blogid) {
     global $wpdb;
     $documents = array();
     $cnt = 0;
@@ -339,29 +339,29 @@ function s4w_load_blog_all($blogid) {
         $postids = $wpdb->get_results("SELECT ID FROM {$wpdb->base_prefix}{$blogid}_posts WHERE post_status = 'publish';");
         for ($idx = 0; $idx < count($postids); $idx++) {
             $postid = $ids[$idx];
-            $documents[] = s4w_build_document( get_blog_post($blogid, $postid->ID), $bloginfo->domain, $bloginfo->path );
+            $documents[] = dezi4w_build_document( get_blog_post($blogid, $postid->ID), $bloginfo->domain, $bloginfo->path );
             $cnt++;
             if ($cnt == $batchsize) {
-                s4w_post($documents);
+                dezi4w_post($documents);
                 $cnt = 0;
                 $documents = array();
             }
         }
         
         if ($documents) {
-            s4w_post($documents);
+            dezi4w_post($documents);
         }
     }
 }
 
-function s4w_handle_modified( $post_id ) {
+function dezi4w_handle_modified( $post_id ) {
     global $current_blog;
     $post_info = get_post( $post_id );
-    $plugin_s4w_settings = s4w_get_option();
-    $index_pages = $plugin_s4w_settings['s4w_content']['index']['page'];
-    $index_posts = $plugin_s4w_settings['s4w_content']['index']['post'];
+    $plugin_dezi4w_settings = dezi4w_get_option();
+    $index_pages = $plugin_dezi4w_settings['dezi4w_content']['index']['page'];
+    $index_posts = $plugin_dezi4w_settings['dezi4w_content']['index']['post'];
     
-    s4w_handle_status_change( $post_id, $post_info );
+    dezi4w_handle_status_change( $post_id, $post_info );
 
     if (($index_pages && $post_info->post_type == 'page' && $post_info->post_status == 'publish') || 
         ($index_posts && $post_info->post_type == 'post' && $post_info->post_status == 'publish')) {
@@ -372,24 +372,24 @@ function s4w_handle_modified( $post_id ) {
         }
         
         $docs = array();
-        $doc = s4w_build_document( $post_info , $current_blog->domain , $current_blog->path );
+        $doc = dezi4w_build_document( $post_info , $current_blog->domain , $current_blog->path );
         if ( $doc ) {
             $docs[] = $doc;
-            s4w_post( $docs );
+            dezi4w_post( $docs );
         }
     }
 }
 
-function s4w_handle_status_change( $post_id, $post_info = null ) {
+function dezi4w_handle_status_change( $post_id, $post_info = null ) {
     global $current_blog;
 	
 	if ( ! $post_info ){
     	$post_info = get_post( $post_id );
 	}
 	
-    $plugin_s4w_settings = s4w_get_option();
-    $private_page = $plugin_s4w_settings['s4w_private_page'];
-    $private_post = $plugin_s4w_settings['s4w_private_post'];
+    $plugin_dezi4w_settings = dezi4w_get_option();
+    $private_page = $plugin_dezi4w_settings['dezi4w_private_page'];
+    $private_post = $plugin_dezi4w_settings['dezi4w_private_post'];
     
     if ( ($private_page && $post_info->post_type == 'page') || ($private_post && $post_info->post_type == 'post') ) {
 	 	/**
@@ -402,66 +402,66 @@ function s4w_handle_status_change( $post_id, $post_info = null ) {
 				($post_info->post_status == 'draft' || $post_info->post_status == 'private') ) {
 	
 			if (is_multisite()) {
-                s4w_delete( $current_blog->domain . $current_blog->path . $post_info->ID );
+                dezi4w_delete( $current_blog->domain . $current_blog->path . $post_info->ID );
           	} else {
-         		s4w_delete( $post_info->ID );
+         		dezi4w_delete( $post_info->ID );
           	}
         }
     }
 }
 
 
-function s4w_handle_delete( $post_id ) {
+function dezi4w_handle_delete( $post_id ) {
     global $current_blog;
     $post_info = get_post( $post_id );
     syslog(LOG_ERR,"deleting post titled '" . $post_info->post_title . "' for " . $current_blog->domain . $current_blog->path);
-    $plugin_s4w_settings = s4w_get_option();
-    $delete_page = $plugin_s4w_settings['s4w_delete_page'];
-    $delete_post = $plugin_s4w_settings['s4w_delete_post'];
+    $plugin_dezi4w_settings = dezi4w_get_option();
+    $delete_page = $plugin_dezi4w_settings['dezi4w_delete_page'];
+    $delete_post = $plugin_dezi4w_settings['dezi4w_delete_post'];
     
     if ( ($delete_page && $post_info->post_type == 'page') || ($delete_post && $post_info->post_type == 'post') ) {
         if (is_multisite()) {
-            s4w_delete( $current_blog->domain . $current_blog->path . $post_info->ID );
+            dezi4w_delete( $current_blog->domain . $current_blog->path . $post_info->ID );
         } else {
-            s4w_delete( $post_info->ID );
+            dezi4w_delete( $post_info->ID );
         }
     }
 }
 
-function s4w_handle_deactivate_blog($blogid) {
-    s4w_delete_blog($blogid);
+function dezi4w_handle_deactivate_blog($blogid) {
+    dezi4w_delete_blog($blogid);
 }
 
-function s4w_handle_activate_blog($blogid) {
-    s4w_apply_config_to_blog($blogid);
-    s4w_load_blog_all($blogid);
+function dezi4w_handle_activate_blog($blogid) {
+    dezi4w_apply_config_to_blog($blogid);
+    dezi4w_load_blog_all($blogid);
 }
 
-function s4w_handle_archive_blog($blogid) {
-    s4w_delete_blog($blogid);
+function dezi4w_handle_archive_blog($blogid) {
+    dezi4w_delete_blog($blogid);
 }
 
-function s4w_handle_unarchive_blog($blogid) {
-    s4w_apply_config_to_blog($blogid);
-    s4w_load_blog_all($blogid);
+function dezi4w_handle_unarchive_blog($blogid) {
+    dezi4w_apply_config_to_blog($blogid);
+    dezi4w_load_blog_all($blogid);
 }
 
-function s4w_handle_spam_blog($blogid) {
-    s4w_delete_blog($blogid);
+function dezi4w_handle_spam_blog($blogid) {
+    dezi4w_delete_blog($blogid);
 }
 
-function s4w_handle_unspam_blog($blogid) {
-    s4w_apply_config_to_blog($blogid);
-    s4w_load_blog_all($blogid);
+function dezi4w_handle_unspam_blog($blogid) {
+    dezi4w_apply_config_to_blog($blogid);
+    dezi4w_load_blog_all($blogid);
 }
 
-function s4w_handle_delete_blog($blogid) {
-    s4w_delete_blog($blogid);
+function dezi4w_handle_delete_blog($blogid) {
+    dezi4w_delete_blog($blogid);
 }
 
-function s4w_handle_new_blog($blogid) {
-    s4w_apply_config_to_blog($blogid);
-    s4w_load_blog_all($blogid);
+function dezi4w_handle_new_blog($blogid) {
+    dezi4w_apply_config_to_blog($blogid);
+    dezi4w_load_blog_all($blogid);
 }
 
 /**
@@ -472,7 +472,7 @@ function s4w_handle_new_blog($blogid) {
  * @param $type what content to index: post type machine name or all content.
  * @return string (json reply)
  */
-function s4w_load_all_posts($prev, $type = 'all') {
+function dezi4w_load_all_posts($prev, $type = 'all') {
     global $wpdb, $current_blog, $current_site;
     $documents = array();
     $cnt = 0;
@@ -482,12 +482,12 @@ function s4w_load_all_posts($prev, $type = 'all') {
     $end = FALSE;
     $percent = 0;
     
-    //multisite logic is decided s4w_get_option
-    $plugin_s4w_settings = s4w_get_option();
+    //multisite logic is decided dezi4w_get_option
+    $plugin_dezi4w_settings = dezi4w_get_option();
     $blog_id = $blog->blog_id;
     
     //retrieve the post types that can be indexed
-    $indexable_content = $plugin_s4w_settings['s4w_content']['index'];
+    $indexable_content = $plugin_dezi4w_settings['dezi4w_content']['index'];
     $indexable_type = array_keys($indexable_content);
     //if the provided $type is not allowed to be index, lets stop
     if (!in_array($type,$indexable_type) && $type != 'all') { 
@@ -495,7 +495,7 @@ function s4w_load_all_posts($prev, $type = 'all') {
     }
     //lets setup our where clause to find the appropriate posts
     $where_and = ($type == 'all') ?"AND post_type IN ('".implode("', '", $indexable_type). "')" : " AND post_type = '$type'";
-    if ($plugin_s4w_settings['s4w_index_all_sites']) {
+    if ($plugin_dezi4w_settings['dezi4w_index_all_sites']) {
 
         // there is potential for this to run for an extended period of time, depending on the # of blgos
         syslog(LOG_ERR,"starting batch import, setting max execution time to unlimited"); 
@@ -545,11 +545,11 @@ function s4w_load_all_posts($prev, $type = 'all') {
                 
                 // using wpurl is better because it will return the proper
                 // URL for the blog whether it is a subdomain install or otherwise
-                $documents[] = s4w_build_document( get_blog_post($blog_id, $postid), substr(get_bloginfo('wpurl'),7), $current_site->path );
+                $documents[] = dezi4w_build_document( get_blog_post($blog_id, $postid), substr(get_bloginfo('wpurl'),7), $current_site->path );
                 $cnt++;
                 if ($cnt == $batchsize) {
-                    s4w_post( $documents, false, false);
-                    s4w_post(false, true, false);
+                    dezi4w_post( $documents, false, false);
+                    dezi4w_post(false, true, false);
                     wp_cache_flush();
                     $cnt = 0;
                     $documents = array();
@@ -557,8 +557,8 @@ function s4w_load_all_posts($prev, $type = 'all') {
             }
             // post the documents to Solr
             // and reset the batch counters
-            s4w_post( $documents, false, false);
-            s4w_post(false, true, false);
+            dezi4w_post( $documents, false, false);
+            dezi4w_post(false, true, false);
             $cnt = 0;
             $documents = array();
             syslog(LOG_ERR,"finished building $postcount documents for " . substr(get_bloginfo('wpurl'),7));
@@ -584,10 +584,10 @@ function s4w_load_all_posts($prev, $type = 'all') {
             if ($idx === $postcount - 1) {
                 $end = TRUE;
             }
-            $documents[] = s4w_build_document( get_post($postid) );
+            $documents[] = dezi4w_build_document( get_post($postid) );
             $cnt++;
             if ($cnt == $batchsize) {
-                s4w_post( $documents, FALSE, FALSE);
+                dezi4w_post( $documents, FALSE, FALSE);
                 $cnt = 0;
                 $documents = array();
                 wp_cache_flush();
@@ -597,18 +597,18 @@ function s4w_load_all_posts($prev, $type = 'all') {
     }
     
     if ( $documents ) {
-        s4w_post( $documents , FALSE, FALSE);
+        dezi4w_post( $documents , FALSE, FALSE);
     }
     
     if ($end) {
-        s4w_post(FALSE, TRUE, FALSE);
+        dezi4w_post(FALSE, TRUE, FALSE);
         printf("{\"type\": \"%s\", \"last\": \"%s\", \"end\": true, \"percent\": \"%.2f\"}", $type, $last, $percent);
     } else {
         printf("{\"type\": \"%s\", \"last\": \"%s\", \"end\": false, \"percent\": \"%.2f\"}", $type, $last, $percent);
     }
 }
 
-function s4w_search_form() {
+function dezi4w_search_form() {
     $sort = $_GET['sort'];
     $order = $_GET['order'];
     $server = $_GET['server'];
@@ -636,7 +636,7 @@ function s4w_search_form() {
     printf($form, htmlspecialchars(stripslashes($_GET['s'])), $sortval, $orderval,$serverval);
 }
 
-function s4w_search_results() {
+function dezi4w_search_results() {
     $qry = stripslashes($_GET['s']);
     $offset = $_GET['offset'];
     $count = $_GET['count'];
@@ -646,13 +646,13 @@ function s4w_search_results() {
     $isdym = $_GET['isdym'];
     $server = $_GET['server'];
     
-    $plugin_s4w_settings = s4w_get_option();
-    $output_info = $plugin_s4w_settings['s4w_output_info'];
-    $output_pager = $plugin_s4w_settings['s4w_output_pager'];
-    $output_facets = $plugin_s4w_settings['s4w_output_facets'];
-    $results_per_page = $plugin_s4w_settings['s4w_num_results'];
-    $categoy_as_taxonomy = $plugin_s4w_settings['s4w_cat_as_taxo'];
-    $dym_enabled = $plugin_s4w_settings['s4w_enable_dym'];
+    $plugin_dezi4w_settings = dezi4w_get_option();
+    $output_info = $plugin_dezi4w_settings['dezi4w_output_info'];
+    $output_pager = $plugin_dezi4w_settings['dezi4w_output_pager'];
+    $output_facets = $plugin_dezi4w_settings['dezi4w_output_facets'];
+    $results_per_page = $plugin_dezi4w_settings['dezi4w_num_results'];
+    $categoy_as_taxonomy = $plugin_dezi4w_settings['dezi4w_cat_as_taxo'];
+    $dym_enabled = $plugin_dezi4w_settings['dezi4w_enable_dym'];
     $out = array();
     
     if ( ! $qry ) {
@@ -719,7 +719,7 @@ function s4w_search_results() {
     }
 
     if ($qry) {
-        $results = s4w_query( $qry, $offset, $count, $fqitms, $sortby, $server);
+        $results = dezi4w_query( $qry, $offset, $count, $fqitms, $sortby, $server);
 
         if ($results) {
             $response = $results->response;
@@ -799,10 +799,10 @@ function s4w_search_results() {
                             $taxo = array();
                             foreach ($facet as $facetval => $facetcnt) {
                                 $taxovals = explode('^^', rtrim($facetval, '^^'));
-                                $taxo = s4w_gen_taxo_array($taxo, $taxovals);
+                                $taxo = dezi4w_gen_taxo_array($taxo, $taxovals);
                             }
                             
-                            $facetitms = s4w_get_output_taxo($facet, $taxo, '', $fqstr.$serverval, $facetfield);
+                            $facetitms = dezi4w_get_output_taxo($facet, $taxo, '', $fqstr.$serverval, $facetfield);
                             
                         } else {
                             foreach ($facet as $facetval => $facetcnt) {
@@ -885,7 +885,7 @@ function s4w_search_results() {
     return $out;
 }
 
-function s4w_print_facet_items($items, $pre = "<ul>", $post = "</ul>", $before = "<li>", $after = "</li>",
+function dezi4w_print_facet_items($items, $pre = "<ul>", $post = "</ul>", $before = "<li>", $after = "</li>",
                                 $nestedpre = "<ul>", $nestedpost = "</ul>", $nestedbefore = "<li>", $nestedafter = "</li>") {
     if (!$items) {
         return;
@@ -896,14 +896,14 @@ function s4w_print_facet_items($items, $pre = "<ul>", $post = "</ul>", $before =
         $item_items = isset($item["items"]) ? true : false;
         
         if ($item_items) {
-            s4w_print_facet_items($item["items"], $nestedpre, $nestedpost, $nestedbefore, $nestedafter, 
+            dezi4w_print_facet_items($item["items"], $nestedpre, $nestedpost, $nestedbefore, $nestedafter, 
                                                   $nestedpre, $nestedpost, $nestedbefore, $nestedafter);
         }
     }
     printf(__("%s\n"), $post);
 }
 
-function s4w_get_output_taxo($facet, $taxo, $prefix, $fqstr, $field) {
+function dezi4w_get_output_taxo($facet, $taxo, $prefix, $fqstr, $field) {
     $qry = stripslashes($_GET['s']);
     
     if (count($taxo) == 0) {
@@ -917,7 +917,7 @@ function s4w_get_output_taxo($facet, $taxo, $prefix, $fqstr, $field) {
             $facetitm['count'] = sprintf(__("%d"), $facetvars[$newprefix]);
             $facetitm['link'] = htmlspecialchars(sprintf(__('?s=%s&fq=%s:%s%s', 'dezi4wp'), $qry, $field,  urlencode('"' . $newprefix . '"'), $fqstr));
             $facetitm['name'] = $taxoname;
-            $outitms = s4w_get_output_taxo($facet, $taxoval, $newprefix, $fqstr, $field);
+            $outitms = dezi4w_get_output_taxo($facet, $taxoval, $newprefix, $fqstr, $field);
             if ($outitms) {
                 $facetitm['items'] = $outitms;
             }
@@ -928,14 +928,14 @@ function s4w_get_output_taxo($facet, $taxo, $prefix, $fqstr, $field) {
     }
 }
 
-function s4w_gen_taxo_array($in, $vals) {
+function dezi4w_gen_taxo_array($in, $vals) {
     if (count($vals) == 1) {
         if ( ! $in[$vals[0]]) {
             $in[$vals[0]] = array();
         }
         return $in;
     } else {
-        $in[$vals[0]] = s4w_gen_taxo_array($in[$vals[0]], array_slice($vals, 1));
+        $in[$vals[0]] = dezi4w_gen_taxo_array($in[$vals[0]], array_slice($vals, 1));
         return $in;
     }
 }
@@ -946,45 +946,45 @@ function s4w_gen_taxo_array($in, $vals) {
  * This allows for extensible server/core based query functions.
  * TODO allow for similar theme/output function
  */
-function s4w_query( $qry, $offset, $count, $fq, $sortby, $server = NULL) {
+function dezi4w_query( $qry, $offset, $count, $fq, $sortby, $server = NULL) {
   //NOTICE: does this needs to be cached to stop the db being hit to grab the options everytime search is being done.
-  $plugin_s4w_settings = s4w_get_option();
+  $plugin_dezi4w_settings = dezi4w_get_option();
   //if no server has been provided use the default server
   if(!$server) {
-    $server = $plugin_s4w_settings['s4w_server']['type']['search'];
+    $server = $plugin_dezi4w_settings['dezi4w_server']['type']['search'];
   }
-  $dezi = s4w_get_dezi($server);
-  if (!function_exists($function = 's4w_'.$server.'_query')) {
-    $function = 's4w_master_query';
+  $dezi = dezi4w_get_dezi($server);
+  if (!function_exists($function = 'dezi4w_'.$server.'_query')) {
+    $function = 'dezi4w_master_query';
   }
   
-  return $function($dezi, $qry, $offset, $count, $fq, $sortby, $plugin_s4w_settings);
+  return $function($dezi, $qry, $offset, $count, $fq, $sortby, $plugin_dezi4w_settings);
 }
 
-function s4w_master_query($dezi, $qry, $offset, $count, $fq, $sortby, &$plugin_s4w_settings) {
+function dezi4w_master_query($dezi, $qry, $offset, $count, $fq, $sortby, &$plugin_dezi4w_settings) {
     $response = NULL;
     $facet_fields = array();
-    $number_of_tags = $plugin_s4w_settings['s4w_max_display_tags'];
+    $number_of_tags = $plugin_dezi4w_settings['dezi4w_max_display_tags'];
     
-    if ($plugin_s4w_settings['s4w_facet_on_categories']) {
+    if ($plugin_dezi4w_settings['dezi4w_facet_on_categories']) {
       $facet_fields[] = 'categories';
     }
     
-    $facet_on_tags = $plugin_s4w_settings['s4w_facet_on_tags'];
+    $facet_on_tags = $plugin_dezi4w_settings['dezi4w_facet_on_tags'];
     if ($facet_on_tags) {
       $facet_fields[] = 'tags';
     }
     
-    if ($plugin_s4w_settings['s4w_facet_on_author']) {
+    if ($plugin_dezi4w_settings['dezi4w_facet_on_author']) {
       $facet_fields[] = 'author';
     }
     
-    if ($plugin_s4w_settings['s4w_facet_on_type']) {
+    if ($plugin_dezi4w_settings['dezi4w_facet_on_type']) {
       $facet_fields[] = 'type';
     }
     
     
-    $facet_on_custom_taxonomy = $plugin_s4w_settings['s4w_facet_on_taxonomy'];
+    $facet_on_custom_taxonomy = $plugin_dezi4w_settings['dezi4w_facet_on_taxonomy'];
     if (count($facet_on_custom_taxonomy)) {
       $taxonomies = (array)get_taxonomies(array('_builtin'=>FALSE),'names');
       foreach($taxonomies as $parent) {
@@ -992,7 +992,7 @@ function s4w_master_query($dezi, $qry, $offset, $count, $fq, $sortby, &$plugin_s
       }
     }
     
-    $facet_on_custom_fields = $plugin_s4w_settings['s4w_facet_on_custom_fields'];
+    $facet_on_custom_fields = $plugin_dezi4w_settings['dezi4w_facet_on_custom_fields'];
     if (count($facet_on_custom_fields)) {
         foreach ( $facet_on_custom_fields as $field_name ) {
         	$facet_fields[] = $field_name . '_str';
@@ -1039,7 +1039,7 @@ function s4w_master_query($dezi, $qry, $offset, $count, $fq, $sortby, &$plugin_s
     return $response;
 }
 
-function s4w_options_init() {
+function dezi4w_options_init() {
     
     $method = $_POST['method'];
     if ($method === "load") {
@@ -1047,13 +1047,13 @@ function s4w_options_init() {
         $prev = $_POST['prev'];
         
         if ($type) {
-            s4w_load_all_posts($prev, $type);
+            dezi4w_load_all_posts($prev, $type);
             exit;
          } else {
             return;
         }
     }
-    register_setting('s4w-options-group', 'plugin_s4w_settings', 's4w_sanitise_options' );   
+    register_setting('s4w-options-group', 'plugin_dezi4w_settings', 'dezi4w_sanitise_options' );   
 }
 
 /**
@@ -1061,40 +1061,40 @@ function s4w_options_init() {
  * @param $options array of s4w settings options
  * @return $options sanitised values
  */
-function s4w_sanitise_options($options) {
-  $options['s4w_dezi_host'] = wp_filter_nohtml_kses($options['s4w_dezi_host']);
-  $options['s4w_dezi_port'] = absint($options['s4w_dezi_port']);
-  $options['s4w_dezi_path'] = wp_filter_nohtml_kses($options['s4w_dezi_path']);
-  $options['s4w_dezi_update_host'] = wp_filter_nohtml_kses($options['s4w_dezi_update_host']);
-  $options['s4w_dezi_update_port'] = absint($options['s4w_dezi_update_port']);
-  $options['s4w_dezi_update_path'] = wp_filter_nohtml_kses($options['s4w_dezi_update_path']);  
-  $options['s4w_index_pages'] = absint($options['s4w_index_pages']);
-  $options['s4w_index_posts'] = absint($options['s4w_index_posts']);
-  $options['s4w_index_comments'] = absint($options['s4w_index_comments']); 
-  $options['s4w_delete_page'] = absint($options['s4w_delete_page']); 
-  $options['s4w_delete_post'] = absint($options['s4w_delete_post']); 
-  $options['s4w_private_page'] = absint($options['s4w_private_page']); 
-  $options['s4w_private_post'] = absint($options['s4w_private_post']);
-  $options['s4w_output_info'] = absint($options['s4w_output_info']); 
-  $options['s4w_output_pager'] = absint($options['s4w_output_pager']); 
-  $options['s4w_output_facets'] = absint($options['s4w_output_facets']);
-  $options['s4w_exclude_pages'] = s4w_filter_str2list($options['s4w_exclude_pages']);
-  $options['s4w_num_results'] = absint($options['s4w_num_results']);
-  $options['s4w_cat_as_taxo'] = absint($options['s4w_cat_as_taxo']);
-  $options['s4w_max_display_tags'] = absint($options['s4w_max_display_tags']);
-  $options['s4w_facet_on_categories'] = absint($options['s4w_facet_on_categories']);
-  $options['s4w_facet_on_tags'] = absint($options['s4w_facet_on_tags'] );
-  $options['s4w_facet_on_author'] = absint($options['s4w_facet_on_author']);
-  $options['s4w_facet_on_type'] = absint($options['s4w_facet_on_type']);
-  $options['s4w_index_all_sites'] = absint($options['s4w_index_all_sites']);
-  $options['s4w_enable_dym'] = absint($options['s4w_enable_dym'] );
-  $options['s4w_connect_type'] = wp_filter_nohtml_kses($options['s4w_connect_type']);
-  $options['s4w_index_custom_fields'] = s4w_filter_str2list($options['s4w_index_custom_fields']);
-  $options['s4w_facet_on_custom_fields'] = s4w_filter_str2list($options['s4w_facet_on_custom_fields']);    
+function dezi4w_sanitise_options($options) {
+  $options['dezi4w_dezi_host'] = wp_filter_nohtml_kses($options['dezi4w_dezi_host']);
+  $options['dezi4w_dezi_port'] = absint($options['dezi4w_dezi_port']);
+  $options['dezi4w_dezi_path'] = wp_filter_nohtml_kses($options['dezi4w_dezi_path']);
+  $options['dezi4w_dezi_update_host'] = wp_filter_nohtml_kses($options['dezi4w_dezi_update_host']);
+  $options['dezi4w_dezi_update_port'] = absint($options['dezi4w_dezi_update_port']);
+  $options['dezi4w_dezi_update_path'] = wp_filter_nohtml_kses($options['dezi4w_dezi_update_path']);  
+  $options['dezi4w_index_pages'] = absint($options['dezi4w_index_pages']);
+  $options['dezi4w_index_posts'] = absint($options['dezi4w_index_posts']);
+  $options['dezi4w_index_comments'] = absint($options['dezi4w_index_comments']); 
+  $options['dezi4w_delete_page'] = absint($options['dezi4w_delete_page']); 
+  $options['dezi4w_delete_post'] = absint($options['dezi4w_delete_post']); 
+  $options['dezi4w_private_page'] = absint($options['dezi4w_private_page']); 
+  $options['dezi4w_private_post'] = absint($options['dezi4w_private_post']);
+  $options['dezi4w_output_info'] = absint($options['dezi4w_output_info']); 
+  $options['dezi4w_output_pager'] = absint($options['dezi4w_output_pager']); 
+  $options['dezi4w_output_facets'] = absint($options['dezi4w_output_facets']);
+  $options['dezi4w_exclude_pages'] = dezi4w_filter_str2list($options['dezi4w_exclude_pages']);
+  $options['dezi4w_num_results'] = absint($options['dezi4w_num_results']);
+  $options['dezi4w_cat_as_taxo'] = absint($options['dezi4w_cat_as_taxo']);
+  $options['dezi4w_max_display_tags'] = absint($options['dezi4w_max_display_tags']);
+  $options['dezi4w_facet_on_categories'] = absint($options['dezi4w_facet_on_categories']);
+  $options['dezi4w_facet_on_tags'] = absint($options['dezi4w_facet_on_tags'] );
+  $options['dezi4w_facet_on_author'] = absint($options['dezi4w_facet_on_author']);
+  $options['dezi4w_facet_on_type'] = absint($options['dezi4w_facet_on_type']);
+  $options['dezi4w_index_all_sites'] = absint($options['dezi4w_index_all_sites']);
+  $options['dezi4w_enable_dym'] = absint($options['dezi4w_enable_dym'] );
+  $options['dezi4w_connect_type'] = wp_filter_nohtml_kses($options['dezi4w_connect_type']);
+  $options['dezi4w_index_custom_fields'] = dezi4w_filter_str2list($options['dezi4w_index_custom_fields']);
+  $options['dezi4w_facet_on_custom_fields'] = dezi4w_filter_str2list($options['dezi4w_facet_on_custom_fields']);    
   return $options;
 }
 
-function s4w_filter_str2list_numeric($input) {
+function dezi4w_filter_str2list_numeric($input) {
     $final = array();
     if ($input != "") {
         foreach( split(',', $input) as $val ) {
@@ -1108,7 +1108,7 @@ function s4w_filter_str2list_numeric($input) {
     return $final;
 }
 
-function s4w_filter_str2list($input) {
+function dezi4w_filter_str2list($input) {
     $final = array();
     if ($input != "") {
         foreach( split(',', $input) as $val ) {
@@ -1119,7 +1119,7 @@ function s4w_filter_str2list($input) {
     return $final;
 }
 
-function s4w_filter_list2str($input) {
+function dezi4w_filter_list2str($input) {
 	if (!is_array($input)) {
 		return "";
 	}
@@ -1132,12 +1132,12 @@ function s4w_filter_list2str($input) {
     return $outval;
 }
 
-function s4w_add_pages() {
+function dezi4w_add_pages() {
     $addpage = FALSE;
     
     if (is_multisite() && is_site_admin()) {
-        $plugin_s4w_settings = s4w_get_option();
-        $indexall = $plugin_s4w_settings['s4w_index_all_sites'];
+        $plugin_dezi4w_settings = dezi4w_get_option();
+        $indexall = $plugin_dezi4w_settings['dezi4w_index_all_sites'];
         if (($indexall && is_main_blog()) || !$indexall) {
             $addpage = TRUE;
         }
@@ -1146,11 +1146,11 @@ function s4w_add_pages() {
     }
     
     if ($addpage) {
-        add_options_page('Solr Options', 'Solr Options', 8, __FILE__, 's4w_options_page');
+        add_options_page('Solr Options', 'Solr Options', 8, __FILE__, 'dezi4w_options_page');
     }
 }
 
-function s4w_options_page() {
+function dezi4w_options_page() {
     if ( file_exists ( dirname(__FILE__) . '/dezi-options-page.php' )) {
         include( dirname(__FILE__) . '/dezi-options-page.php' );
     } else {
@@ -1158,7 +1158,7 @@ function s4w_options_page() {
     }
 }
 
-function s4w_admin_head() {
+function dezi4w_admin_head() {
     // include our default css 
     if (file_exists(dirname(__FILE__) . '/template/search.css')) {
         printf(__("<link rel=\"stylesheet\" href=\"%s\" type=\"text/css\" media=\"screen\" />\n"), plugins_url('/template/search.css', __FILE__));
@@ -1202,20 +1202,20 @@ function s4w_admin_head() {
     }
     
     function disableAll() {
-        $j("input[name^='s4w_content_load']").attr('disabled','disabled');
-        $j('[name=s4w_deleteall]').attr('disabled','disabled');
-        $j('[name=s4w_init_blogs]').attr('disabled','disabled');
-        $j('[name=s4w_optimize]').attr('disabled','disabled');
-        $j('[name=s4w_ping]').attr('disabled','disabled');
+        $j("input[name^='dezi4w_content_load']").attr('disabled','disabled');
+        $j('[name=dezi4w_deleteall]').attr('disabled','disabled');
+        $j('[name=dezi4w_init_blogs]').attr('disabled','disabled');
+        $j('[name=dezi4w_optimize]').attr('disabled','disabled');
+        $j('[name=dezi4w_ping]').attr('disabled','disabled');
         $j('#settingsbutton').attr('disabled','disabled');
     }
     
     function enableAll() {
-        $j("input[name^='s4w_content_load']").removeAttr('disabled');
-        $j('[name=s4w_deleteall]').removeAttr('disabled');
-        $j('[name=s4w_init_blogs]').removeAttr('disabled');
-        $j('[name=s4w_optimize]').removeAttr('disabled');
-        $j('[name=s4w_ping]').removeAttr('disabled');
+        $j("input[name^='dezi4w_content_load']").removeAttr('disabled');
+        $j('[name=dezi4w_deleteall]').removeAttr('disabled');
+        $j('[name=dezi4w_init_blogs]').removeAttr('disabled');
+        $j('[name=dezi4w_optimize]').removeAttr('disabled');
+        $j('[name=dezi4w_ping]').removeAttr('disabled');
         $j('#settingsbutton').removeAttr('disabled');
     }
     
@@ -1223,7 +1223,7 @@ function s4w_admin_head() {
     
     $j(document).ready(function() {
        switch1();
-       $j("input[name^='s4w_content_load']").click(function(event){ 
+       $j("input[name^='dezi4w_content_load']").click(function(event){ 
           event.preventDefault();
           var regex = /\b[a-z]+\b/;
           var match = regex.exec(this.name);
@@ -1237,14 +1237,14 @@ function s4w_admin_head() {
 </script> <?php
 }
 
-function s4w_default_head() {
+function dezi4w_default_head() {
     // include our default css 
     if (file_exists(dirname(__FILE__) . '/template/search.css')) {
         printf(__("<link rel=\"stylesheet\" href=\"%s\" type=\"text/css\" media=\"screen\" />\n"), plugins_url('/template/search.css', __FILE__));
     }
 }
 
-function s4w_autosuggest_head() {
+function dezi4w_autosuggest_head() {
     if (file_exists(dirname(__FILE__) . '/template/autocomplete.css')) {
         printf(__("<link rel=\"stylesheet\" href=\"%s\" type=\"text/css\" media=\"screen\" />\n"), plugins_url('/template/autocomplete.css', __FILE__));
     }
@@ -1258,7 +1258,7 @@ function s4w_autosuggest_head() {
 <?php
 }
 
-function s4w_template_redirect() {
+function dezi4w_template_redirect() {
     wp_enqueue_script('suggest');
 
     // not a search page; don't do anything and return
@@ -1274,18 +1274,18 @@ function s4w_template_redirect() {
         $q = stripslashes($_GET['q']);
         $limit = $_GET['limit'];
 
-        s4w_autocomplete($q, $limit);
+        dezi4w_autocomplete($q, $limit);
         exit;
     }
     
 	// If there is a template file then we use it
-    if (locate_template( array( 's4w_search.php' ), FALSE, TRUE)) {
+    if (locate_template( array( 'dezi4w_search.php' ), FALSE, TRUE)) {
         // use theme file
-        locate_template( array( 's4w_search.php' ), TRUE, TRUE);
-    } else if (file_exists(dirname(__FILE__) . '/template/s4w_search.php')) {
+        locate_template( array( 'dezi4w_search.php' ), TRUE, TRUE);
+    } else if (file_exists(dirname(__FILE__) . '/template/dezi4w_search.php')) {
         // use plugin supplied file
-        add_action('wp_head', 's4w_default_head');
-        include_once(dirname(__FILE__) . '/template/s4w_search.php');
+        add_action('wp_head', 'dezi4w_default_head');
+        include_once(dirname(__FILE__) . '/template/dezi4w_search.php');
     } else {
         // no template files found, just continue on like normal
         // this should get to the normal WordPress search results
@@ -1295,14 +1295,14 @@ function s4w_template_redirect() {
     exit;
 }
 
-function s4w_mlt_widget() {
-    register_widget('s4w_MLTWidget');
+function dezi4w_mlt_widget() {
+    register_widget('dezi4w_MLTWidget');
 }
 
-class s4w_MLTWidget extends WP_Widget {
+class dezi4w_MLTWidget extends WP_Widget {
 
-    function s4w_MLTWidget() {
-        $widget_ops = array('classname' => 'widget_s4w_mlt', 'description' => __( "Displays a list of pages similar to the page being viewed") );
+    function dezi4w_MLTWidget() {
+        $widget_ops = array('classname' => 'widget_dezi4w_mlt', 'description' => __( "Displays a list of pages similar to the page being viewed") );
         $this->WP_Widget('mlt', __('Similar'), $widget_ops);
     }
 
@@ -1317,7 +1317,7 @@ class s4w_MLTWidget extends WP_Widget {
         
         $showauthor = $instance['showauthor'];
 
-        $dezi = s4w_get_dezi();
+        $dezi = dezi4w_get_dezi();
         $response = NULL;
 
         if ((!is_single() && !is_page()) || !$dezi) {
@@ -1389,8 +1389,8 @@ class s4w_MLTWidget extends WP_Widget {
     }
 }
 
-function s4w_autocomplete($q, $limit) {
-    $dezi = s4w_get_dezi();
+function dezi4w_autocomplete($q, $limit) {
+    $dezi = dezi4w_get_dezi();
     $response = NULL;
 
     if (!$dezi) {
@@ -1419,33 +1419,33 @@ function s4w_autocomplete($q, $limit) {
 
 // copies config settings from the main blog
 // to all of the other blogs
-function s4w_copy_config_to_all_blogs() {
+function dezi4w_copy_config_to_all_blogs() {
   global $wpdb;
 
   $blogs = $wpdb->get_results("SELECT blog_id FROM $wpdb->blogs WHERE spam = 0 AND deleted = 0");
 
-  $plugin_s4w_settings = s4w_get_option();
+  $plugin_dezi4w_settings = dezi4w_get_option();
   foreach($blogs as $blog) {
     switch_to_blog($blog->blog_id);
     wp_cache_flush();
     syslog(LOG_ERR,"pushing config to {$blog->blog_id}");
-    s4w_update_option($plugin_s4w_settings);
+    dezi4w_update_option($plugin_dezi4w_settings);
   }
 
   wp_cache_flush();
   restore_current_blog();
 }
 
-function s4w_apply_config_to_blog($blogid) {
+function dezi4w_apply_config_to_blog($blogid) {
   syslog(LOG_ERR,"applying config to blog with id $blogid");
   if (!is_multisite())
     return;
 
   wp_cache_flush();
-  $plugin_s4w_settings = s4w_get_option();
+  $plugin_dezi4w_settings = dezi4w_get_option();
   switch_to_blog($blogid);
   wp_cache_flush();
-  s4w_update_option($plugin_s4w_settings);
+  dezi4w_update_option($plugin_dezi4w_settings);
   restore_current_blog();
   wp_cache_flush();
 }
@@ -1454,7 +1454,7 @@ function s4w_apply_config_to_blog($blogid) {
  * Retrieve a list of post types that exists
  * @return array
  */
-function s4w_get_all_post_types() {
+function dezi4w_get_all_post_types() {
   global $wpdb;
   //remove the defualt attachment/revision and menu from the returned types.
   $query = $wpdb->get_results("SELECT DISTINCT(post_type) FROM $wpdb->posts WHERE post_type NOT IN('attachment', 'revision', 'nav_menu_item') ORDER BY post_type");
@@ -1467,27 +1467,27 @@ function s4w_get_all_post_types() {
   }
 }
 
-add_action( 'template_redirect', 's4w_template_redirect', 1 );
-add_action( 'publish_post', 's4w_handle_modified' );
-add_action( 'publish_page', 's4w_handle_modified' );
-add_action( 'save_post', 's4w_handle_modified' );
-add_action( 'delete_post', 's4w_handle_delete' );
-add_action( 'trash_post', 's4w_handle_delete' );
-add_action( 'admin_menu', 's4w_add_pages');
-add_action( 'admin_init', 's4w_options_init');
-add_action( 'widgets_init', 's4w_mlt_widget');
-add_action( 'wp_head', 's4w_autosuggest_head');
-add_action( 'admin_head', 's4w_admin_head');
+add_action( 'template_redirect', 'dezi4w_template_redirect', 1 );
+add_action( 'publish_post', 'dezi4w_handle_modified' );
+add_action( 'publish_page', 'dezi4w_handle_modified' );
+add_action( 'save_post', 'dezi4w_handle_modified' );
+add_action( 'delete_post', 'dezi4w_handle_delete' );
+add_action( 'trash_post', 'dezi4w_handle_delete' );
+add_action( 'admin_menu', 'dezi4w_add_pages');
+add_action( 'admin_init', 'dezi4w_options_init');
+add_action( 'widgets_init', 'dezi4w_mlt_widget');
+add_action( 'wp_head', 'dezi4w_autosuggest_head');
+add_action( 'admin_head', 'dezi4w_admin_head');
 
 if (is_multisite()) {
-    add_action( 'deactivate_blog', 's4w_handle_deactivate_blog');
-    add_action( 'activate_blog', 's4w_handle_activate_blog');
-    add_action( 'archive_blog', 's4w_handle_archive_blog');
-    add_action( 'unarchive_blog', 's4w_handle_unarchive_blog');
-    add_action( 'make_spam_blog', 's4w_handle_spam_blog');
-    add_action( 'unspam_blog', 's4w_handle_unspam_blog');
-    add_action( 'delete_blog', 's4w_handle_delete_blog');
-    add_action( 'wpmu_new_blog', 's4w_handle_new_blog');
+    add_action( 'deactivate_blog', 'dezi4w_handle_deactivate_blog');
+    add_action( 'activate_blog', 'dezi4w_handle_activate_blog');
+    add_action( 'archive_blog', 'dezi4w_handle_archive_blog');
+    add_action( 'unarchive_blog', 'dezi4w_handle_unarchive_blog');
+    add_action( 'make_spam_blog', 'dezi4w_handle_spam_blog');
+    add_action( 'unspam_blog', 'dezi4w_handle_unspam_blog');
+    add_action( 'delete_blog', 'dezi4w_handle_delete_blog');
+    add_action( 'wpmu_new_blog', 'dezi4w_handle_new_blog');
 }
 
 ?>

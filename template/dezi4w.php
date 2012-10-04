@@ -10,7 +10,7 @@ Template Name: Search
 <div class="dezi clearfix">
 	
 <?php 
-    $results = s4w_search_results(); 
+    $results = dezi4w_search_results(); 
     if (!isset($results['results']) || $results['results'] === NULL) {
         echo "<div class='dezi_noresult'><h2>Sorry, search is unavailable right now</h2><p>Try again later?</p></div>";
     } 
@@ -163,7 +163,7 @@ Template Name: Search
 					foreach($results['facets'] as $facet) {
 					    if (sizeof($facet["items"]) > 1) { #don't display facets with only 1 value
   							printf("<li>\n<h3>%s</h3>\n", $facet['name']);
-  							s4w_print_facet_items($facet["items"], "<ol>", "</ol>", "<li>", "</li>",
+  							dezi4w_print_facet_items($facet["items"], "<ol>", "</ol>", "<li>", "</li>",
   																					"<li><ol>", "</ol></li>", "<li>", "</li>");
   							printf("</li>\n");
               }
