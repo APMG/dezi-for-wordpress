@@ -1,6 +1,6 @@
 <?php
 /*  
-    Copyright (c) 2009 Matt Weber
+    Copyright (c) 2012 American Public Media Group
 
     Permission is hereby granted, free of charge, to any person obtaining a copy
     of this software and associated documentation files (the "Software"), to deal
@@ -31,8 +31,8 @@ $post_types = dezi4w_get_all_post_types();
 if ($dezi4w_settings['dezi4w_dezi_initialized'] != 1) {
   
   $options['dezi4w_index_all_sites'] = 0;
-  $options['dezi4w_server']['info']['single']= array('host'=>'localhost','port'=>8983, 'path'=>'/dezi');
-  $options['dezi4w_server']['info']['master']= array('host'=>'localhost','port'=>8983, 'path'=>'/dezi');
+  $options['dezi4w_server']['info']['single']= array('host'=>'localhost','port'=>5000, 'path'=>'/');
+  $options['dezi4w_server']['info']['master']= array('host'=>'localhost','port'=>5000, 'path'=>'/');
   $options['dezi4w_server']['type']['search'] = 'master';
   $options['dezi4w_server']['type']['update'] = 'master';
   
@@ -191,25 +191,25 @@ if ($_POST['dezi4w_ping']) {
 } else if ($_POST['dezi4w_init_blogs']) {
     dezi4w_copy_config_to_all_blogs();
     ?>
-        <div id="message" class="updated fade"><p><strong><?php _e('Solr for Wordpress Configured for All Blogs!', 'dezi4wp') ?></strong></p></div>
+        <div id="message" class="updated fade"><p><strong><?php _e('Dezi for Wordpress Configured for All Blogs!', 'dezi4wp') ?></strong></p></div>
 
 <?php } ?>
 <div class="wrap">
-<h2><?php _e('Solr For WordPress', 'dezi4wp') ?></h2>
+<h2><?php _e('Dezi For WordPress', 'dezi4wp') ?></h2>
 
 <form method="post" action="options-general.php?page=dezi-for-wordpress/dezi-for-wordpress.php">
-<h3><?php _e('Configure Solr', 'dezi4wp') ?></h3>
+<h3><?php _e('Configure Dezi', 'dezi4wp') ?></h3>
 
 <div class="dezi_admin clearfix">
 	<div class="dezi_adminR">
 		<div class="dezi_adminR2" id="dezi_admin_tab2">
-			<label><?php _e('Solr Host', 'dezi4wp') ?></label>
+			<label><?php _e('Dezi Host', 'dezi4wp') ?></label>
 			<input name="settings[dezi4w_server][type][update]" type="hidden" value="master" />
 			<input name="settings[dezi4w_server][type][search]" type="hidden" value="master" />
 			<p><input type="text" name="settings[dezi4w_server][info][single][host]" value="<?php echo $dezi4w_settings['dezi4w_server']['info']['single']['host']?>" /></p>
-			<label><?php _e('Solr Port', 'dezi4wp') ?></label>
+			<label><?php _e('Dezi Port', 'dezi4wp') ?></label>
 			<p><input type="text" name="settings[dezi4w_server][info][single][port]" value="<?php echo $dezi4w_settings['dezi4w_server']['info']['single']['port']?>" /></p>
-			<label><?php _e('Solr Path', 'dezi4wp') ?></label>
+			<label><?php _e('Dezi Path', 'dezi4wp') ?></label>
 			<p><input type="text" name="settings[dezi4w_server][info][single][path]" value="<?php echo $dezi4w_settings['dezi4w_server']['info']['single']['path']?>" /></p>
 		</div>
 		<div class="dezi_adminR2" id="dezi_admin_tab3">
@@ -231,11 +231,11 @@ if ($_POST['dezi4w_ping']) {
     		  <label><?php _e('ServerID', 'dezi4wp') ?>: <strong><?php echo $new_id; ?></strong></label>
     		  <p>Update Server: &nbsp;&nbsp;<input name="settings[dezi4w_server][type][update]" type="radio" value="<?php echo $new_id?>" <?php dezi4w_checkConnectOption($dezi4w_settings['dezi4w_server']['type']['update'], $new_id); ?> /></p>
     			<p>Search Server: &nbsp;&nbsp;<input name="settings[dezi4w_server][type][search]" type="radio" value="<?php echo $new_id?>" <?php dezi4w_checkConnectOption($dezi4w_settings['dezi4w_server']['type']['search'], $new_id); ?> /></p>
-    		  <label><?php _e('Solr Host', 'dezi4wp') ?></label>
+    		  <label><?php _e('Dezi Host', 'dezi4wp') ?></label>
     			<p><input type="text" name="settings[dezi4w_server][info][<?php echo $new_id ?>][host]" value="<?php echo $server['host'] ?>" /></p>
-    			<label><?php _e('Solr Port', 'dezi4wp') ?></label>
+    			<label><?php _e('Dezi Port', 'dezi4wp') ?></label>
     			<p><input type="text" name="settings[dezi4w_server][info][<?php echo $new_id ?>][port]" value="<?php echo $server['port'] ?>" /></p>
-    			<label><?php _e('Solr Path', 'dezi4wp') ?></label>
+    			<label><?php _e('Dezi Path', 'dezi4wp') ?></label>
     			<p><input type="text" name="settings[dezi4w_server][info][<?php echo $new_id ?>][path]" value="<?php echo $server['path'] ?>" /></p>		  
     			</td>
     			<?php 
@@ -249,13 +249,13 @@ if ($_POST['dezi4w_ping']) {
 		<li id="dezi_admin_tab1_btn" class="dezi_admin_tab1">
 		</li>
 		<li id="dezi_admin_tab2_btn" class="dezi_admin_tab2">
-			<h4><input id="deziconnect_single" name="settings[dezi4w_connect_type]" type="radio" value="dezi_single" <?php dezi4w_checkConnectOption($dezi4w_settings['dezi4w_connect_type'], 'dezi_single'); ?> onclick="switch1();" />Single Solr Server</h4>
+			<h4><input id="deziconnect_single" name="settings[dezi4w_connect_type]" type="radio" value="dezi_single" <?php dezi4w_checkConnectOption($dezi4w_settings['dezi4w_connect_type'], 'dezi_single'); ?> onclick="switch1();" />Single Dezi Server</h4>
 			<ol>
-				<li>Download, install and configure your own <a href="http://lucene.apache.org/dezi/">Apache Solr</a> instance</li>
+				<li>Download, install and configure your own <a href="http://dezi.org/">Dezi</a> instance</li>
 			</ol>
 		</li>
 		<li id="dezi_admin_tab3_btn" class="dezi_admin_tab3">
-			<h4><input id="deziconnect_separated" name="settings[dezi4w_connect_type]" type="radio" value="dezi_separated" <?php dezi4w_checkConnectOption($dezi4w_settings['dezi4w_connect_type'], 'dezi_separated'); ?> onclick="switch1();" />Separated Solr Servers</h4>
+			<h4><input id="deziconnect_separated" name="settings[dezi4w_connect_type]" type="radio" value="dezi_separated" <?php dezi4w_checkConnectOption($dezi4w_settings['dezi4w_connect_type'], 'dezi_separated'); ?> onclick="switch1();" />Separated Dezi Servers</h4>
 			<ol>
 				<li>Separate URL's for updates and searches.</li>
 			</ol>
@@ -381,7 +381,7 @@ if ($_POST['dezi4w_ping']) {
 
     <?php if(is_multisite()) { ?>
     <tr valign="top">
-        <th scope="row"><?php _e('Push Solr Configuration to All Blogs', 'dezi4wp') ?></th>
+        <th scope="row"><?php _e('Push Dezi Configuration to All Blogs', 'dezi4wp') ?></th>
         <td><input type="submit" class="button-primary" name="dezi4w_init_blogs" value="<?php _e('Execute', 'dezi4wp') ?>" /></td>
     </tr>
     <?php } ?>
