@@ -1,0 +1,3 @@
+[submodule "dezi-client"]
+	path = dezi-client
+	url = git@github.com:karpet/dezi-client-php.git
