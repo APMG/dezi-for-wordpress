@@ -1,14 +1,13 @@
 # SOME DESCRIPTIVE TITLE.
-# Copyright (C) YEAR Matt Weber
+# Copyright (C) 2012 American Public Media Group
 # This file is distributed under the same license as the PACKAGE package.
-# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
 #
 #, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: Solr for WordPress 0.2.0\n"
-"Report-Msgid-Bugs-To: http://wordpress.org/tag/dezi-for-wordpress\n"
-"POT-Creation-Date: 2009-05-13 10:15-0700\n"
+"Project-Id-Version: Dezi for WordPress 0.2.0\n"
+"Report-Msgid-Bugs-To: https://github.com/APMG/dezi-for-wordpress\n"
+"POT-Creation-Date: 2012-10-11 00:00:00 -0500\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,7 +16,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 
 #: dezi-for-wordpress.php:36
-msgid "Solr for WordPress requires WordPress 2.7 or greater. "
+msgid "Dezi for WordPress requires WordPress 2.7 or greater. "
 msgstr ""
 
 #: dezi-for-wordpress.php:108
@@ -147,7 +146,7 @@ msgid "All Indexed Pages Deleted!"
 msgstr ""
 
 #: dezi-options-page.php:86
-msgid "Solr For WordPress"
+msgid "Dezi For WordPress"
 msgstr ""
 
 #: dezi-options-page.php:89
@@ -155,15 +154,15 @@ msgid "Connection Information"
 msgstr ""
 
 #: dezi-options-page.php:92
-msgid "Solr Host"
+msgid "Dezi Host"
 msgstr ""
 
 #: dezi-options-page.php:97
-msgid "Solr Port"
+msgid "Dezi Port"
 msgstr ""
 
 #: dezi-options-page.php:102
-msgid "Solr Path"
+msgid "Dezi Path"
 msgstr ""
 
 #: dezi-options-page.php:107
@@ -272,21 +271,21 @@ msgid "Delete All"
 msgstr ""
 
 #. Plugin Name of an extension
-msgid "Solr for WordPress"
+msgid "Dezi for WordPress"
 msgstr ""
 
 #. Plugin URI of an extension
-msgid "https://launchpad.net/dezi4wordpress"
+msgid "https://github.com/APMG/dezi-for-wordpress"
 msgstr ""
 
 #. Description of an extension
-msgid "Indexes, removes, and updates documents in the Solr search engine."
+msgid "Indexes, removes, and updates documents in the Dezi search engine."
 msgstr ""
 
 #. Author of an extension
-msgid "Matt Weber"
+msgid "American Public Media Group"
 msgstr ""
 
 #. Author URI of an extension
-msgid "http://www.mattweber.org"
+msgid "https://github.com/APMG/dezi-for-wordpress"
 msgstr ""
