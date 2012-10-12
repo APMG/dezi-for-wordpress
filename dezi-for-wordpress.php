@@ -269,9 +269,13 @@ function dezi4w_build_document( $post_info, $domain = NULL, $path = NULL) {
         if (count($index_custom_fields)>0 && count($custom_fields = get_post_custom($post_info->ID))) {
             foreach ((array)$index_custom_fields as $field_name ) {
                 $field = (array)$custom_fields[$field_name];
+                $vals = array($field_name.'_str' => array(), $field_name.'_srch' => array());
                 foreach ( $field as $key => $value ) {
-                    $doc->addField($field_name . '_str', $value);
-                    $doc->addField($field_name . '_srch', $value);
+                    $vals[$field_name . '_str'][] = $value;
+                    $vals[$field_name . '_srch'][] = $value;
+                }
+                foreach ($vals as $k=>$v) {
+                    $doc->set_field($k, $v);
                 }
             }
         }
@@ -343,7 +347,7 @@ function dezi4w_optimize() {
     try {
         $dezi = dezi4w_get_dezi();
         if ( ! $dezi == NULL ) {
-            $dezi->optimize();
+            //$dezi->optimize(); // TODO
         }
     } catch ( Exception $e ) {
         syslog(LOG_ERR, $e->getMessage());
@@ -360,8 +364,9 @@ function dezi4w_delete( $doc_id ) {
     try {
         $dezi = dezi4w_get_dezi();
         if ( ! $dezi == NULL ) {
-            $dezi->deleteById( $doc_id );
-            $dezi->commit();
+            syslog(LOG_ERR, "dezi->delete doc_id=$doc_id"); // TODO
+            //$dezi->deleteById( $doc_id );
+            //$dezi->commit();
         }
     } catch ( Exception $e ) {
         syslog(LOG_ERR, $e->getMessage());
@@ -376,8 +381,9 @@ function dezi4w_delete_all() {
     try {
         $dezi = dezi4w_get_dezi();
         if ( ! $dezi == NULL ) {
-            $dezi->deleteByQuery( '*:*' );
-            $dezi->commit();
+            syslog(LOG_ERR, "dezi->delete_all still TODO");
+            //$dezi->deleteByQuery( '*:*' );
+            //$dezi->commit();
         }
     } catch ( Exception $e ) {
         echo $e->getMessage();
@@ -394,8 +400,9 @@ function dezi4w_delete_blog($blogid) {
     try {
         $dezi = dezi4w_get_dezi();
         if ( ! $dezi == NULL ) {
-            $dezi->deleteByQuery( "blogid:{$blogid}" );
-            $dezi->commit();
+            syslog(LOG_ERR, "dezi->delete blogid:$blogid still TODO");
+            //$dezi->deleteByQuery( "blogid:{$blogid}" );
+            //$dezi->commit();
         }
     } catch ( Exception $e ) {
         echo $e->getMessage();
@@ -653,7 +660,7 @@ function dezi4w_load_all_posts($prev, $type = 'all') {
 
         // get a list of blog ids
         $bloglist = $wpdb->get_col("SELECT * FROM {$wpdb->base_prefix}blogs WHERE spam = 0 AND deleted = 0", 0);
-        syslog(LOG_ERR, "pushing posts from " . count($bloglist) . " blogs into Solr");
+        syslog(LOG_ERR, "pushing posts from " . count($bloglist) . " blogs into Dezi");
         foreach ($bloglist as $bloginfo) {
 
             // for each blog we need to import we get their id
@@ -704,7 +711,7 @@ function dezi4w_load_all_posts($prev, $type = 'all') {
                     $documents = array();
                 }
             }
-            // post the documents to Solr
+            // post the documents to Dezi
             // and reset the batch counters
             dezi4w_post( $documents, false, false);
             dezi4w_post(false, true, false);
@@ -1391,7 +1398,7 @@ function dezi4w_add_pages() {
         }
 
     if ($addpage) {
-        add_options_page('Solr Options', 'Solr Options', 8, __FILE__, 'dezi4w_options_page');
+        add_options_page('Dezi Options', 'Dezi Options', 8, __FILE__, 'dezi4w_options_page');
     }
 }
 
