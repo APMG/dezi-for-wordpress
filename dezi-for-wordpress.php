@@ -1,15 +1,15 @@
 <?php
 /*
-Plugin Name: Solr for WordPress
-Plugin URI: http://wordpress.org/extend/plugins/dezi-for-wordpress/
-Donate link: http://www.mattweber.org
-Description: Indexes, removes, and updates documents in the Solr search engine.
-Version: 0.5.1
-Author: Matt Weber
-Author URI: http://www.mattweber.org
+Plugin Name: Dezi for WordPress
+Plugin URI: https://github.com/APMG/dezi-for-wordpress
+Description: Indexes, removes, and updates documents in the Dezi search engine.
+Version: 0.1.0
+Author: Peter Karman
+Author URI: http://apmg.github.com/
+License: MIT
 */
 /*  
-    Copyright (c) 2011 Matt Weber
+    Copyright (c) 2012 American Public Media Group
 
     Permission is hereby granted, free of charge, to any person obtaining a copy
     of this software and associated documentation files (the "Software"), to deal
@@ -30,16 +30,18 @@ Author URI: http://www.mattweber.org
     THE SOFTWARE.
 */
 
+/* this project started as a fork of solr-for-wordpress */
+
 global $wp_version, $version;
 
-$version = '0.5.1';
+$version = '0.1.0';
 
-$errmsg = __('Solr for WordPress requires WordPress 3.0 or greater. ', 'dezi4wp');
+$errmsg = __('Dezi for WordPress requires WordPress 3.0 or greater. ', 'dezi4wp');
 if (version_compare($wp_version, '3.0', '<')) {
     exit ($errmsg);
 }
 
-require_once(dirname(__FILE__) . '/SolrPhpClient/Apache/Solr/Service.php');
+require_once(dirname(__FILE__) . '/Dezi_Client.php');
 
 function dezi4w_get_option() {
     $indexall = FALSE;
@@ -85,14 +87,16 @@ function dezi4w_get_dezi($server_id = NULL) {
   $host = $plugin_dezi4w_settings['dezi4w_server']['info'][$server_id]['host'];
   $port = $plugin_dezi4w_settings['dezi4w_server']['info'][$server_id]['port'];
   $path = $plugin_dezi4w_settings['dezi4w_server']['info'][$server_id]['path'];
+  $un   = $plugin_dezi4w_settings['dezi4w_server']['info'][$server_id]['username'];
+  $pw   = $plugin_dezi4w_settings['dezi4w_server']['info'][$server_id]['password'];
   # double check everything has been set
   if ( ! ($host and $port and $path) ) {
     syslog(LOG_ERR,"host, port or path are empty, host:$host, port:$port, path:$path");
     return NULL;
   }
 
-  # create the dezi service object
-  $dezi = new Apache_Solr_Service($host, $port, $path);
+  # create the dezi client object
+  $dezi = new Dezi_Client(array('server'=>"$host/$path:$port", 'username'=>$un, 'password'=>$pw));
 
   return $dezi;
 }
@@ -134,7 +138,7 @@ function dezi4w_build_document( $post_info, $domain = NULL, $path = NULL) {
             return NULL;
         }
         
-        $doc = new Apache_Solr_Document();
+        $doc = new Dezi_Doc(array('uri'=>get_permalink( $post_info->ID )));
         $auth_info = get_userdata( $post_info->post_author );
         
         # wpmu specific info
@@ -150,32 +154,34 @@ function dezi4w_build_document( $post_info, $domain = NULL, $path = NULL) {
             
             
             $blogid = get_blog_id_from_url($domain, $path);
-            $doc->setField( 'id', $domain . $path . $post_info->ID );
-            $doc->setField( 'permalink', get_blog_permalink($blogid, $post_info->ID));
-            $doc->setField( 'blogid', $blogid );
-            $doc->setField( 'blogdomain', $domain );
-            $doc->setField( 'blogpath', $path );
-            $doc->setField( 'wp', 'multisite');
+            $doc->set_field( 'id', $domain . $path . $post_info->ID );
+            $doc->set_field( 'permalink', get_blog_permalink($blogid, $post_info->ID));
+            $doc->set_field( 'blogid', $blogid );
+            $doc->set_field( 'blogdomain', $domain );
+            $doc->set_field( 'blogpath', $path );
+            $doc->set_field( 'wp', 'multisite');
         } else {
-            $doc->setField( 'id', $post_info->ID );
-            $doc->setField( 'permalink', get_permalink( $post_info->ID ) );
-            $doc->setField( 'wp', 'wp');
+            $doc->set_field( 'id', $post_info->ID );
+            $doc->set_field( 'permalink', get_permalink( $post_info->ID ) );
+            $doc->set_field( 'wp', 'wp');
         }
         
         $numcomments = 0;
         if ($index_comments) {
             $comments = get_comments("status=approve&post_id={$post_info->ID}");
+            $comment_array = array();
             foreach ($comments as $comment) {
-                $doc->addField( 'comments', $comment->comment_content );
+                $comment_array[] = $comment->comment_content;
                 $numcomments += 1;
             }
+            $doc->set_field('comments', $comment_array);
         }
            
-        $doc->setField( 'title', $post_info->post_title );
-        $doc->setField( 'content', strip_tags($post_info->post_content) );
+        $doc->set_field( 'title', $post_info->post_title );
+        $doc->set_field( 'body', strip_tags($post_info->post_content) );
 
         // rawcontent strips out characters lower than 0x20
-        $doc->setField( 'rawcontent', strip_tags(preg_replace('/[^(\x20-\x7F)\x0A]*/','', $post_info->post_content)));
+        $doc->set_field( 'rawcontent', strip_tags(preg_replace('/[^(\x20-\x7F)\x0A]*/','', $post_info->post_content)));
 
         // contentnoshortcodes also strips characters below 0x20 but also strips shortcodes
         // used in WP to add images or other content, useful if you're pulling this data
@@ -186,25 +192,27 @@ function dezi4w_build_document( $post_info, $domain = NULL, $path = NULL) {
         // 
         // Will become
         //   FARGO - Republican U.S. Senate...
-        $doc->setField( 'contentnoshortcodes', strip_tags(preg_replace('/[^(\x20-\x7F)\x0A]*/','', strip_tags(strip_shortcodes($post_info->post_content)))));
-        $doc->setField( 'numcomments', $numcomments );
-        $doc->setField( 'author', $auth_info->display_name );
-        $doc->setField( 'author_s', get_author_posts_url($auth_info->ID, $auth_info->user_nicename));
-        $doc->setField( 'type', $post_info->post_type );
-        $doc->setField( 'date', dezi4w_format_date($post_info->post_date_gmt) );
-        $doc->setField( 'modified', dezi4w_format_date($post_info->post_modified_gmt) );
-        $doc->setField( 'displaydate', $post_info->post_date );
-        $doc->setField( 'displaymodified', $post_info->post_modified );
+        $doc->set_field( 'contentnoshortcodes', strip_tags(preg_replace('/[^(\x20-\x7F)\x0A]*/','', strip_tags(strip_shortcodes($post_info->post_content)))));
+        $doc->set_field( 'numcomments', $numcomments );
+        $doc->set_field( 'author', $auth_info->display_name );
+        $doc->set_field( 'author_s', get_author_posts_url($auth_info->ID, $auth_info->user_nicename));
+        $doc->set_field( 'type', $post_info->post_type );
+        $doc->set_field( 'date', dezi4w_format_date($post_info->post_date_gmt) );
+        $doc->set_field( 'modified', dezi4w_format_date($post_info->post_modified_gmt) );
+        $doc->set_field( 'displaydate', $post_info->post_date );
+        $doc->set_field( 'displaymodified', $post_info->post_modified );
 
         $categories = get_the_category($post_info->ID);
         if ( ! $categories == NULL ) {
+            $cat_array = array();
             foreach( $categories as $category ) {
                 if ($categoy_as_taxonomy) {
-                    $doc->addField('categories', get_category_parents($category->cat_ID, FALSE, '^^'));
+                    $cat_array[] = get_category_parents($category->cat_ID, FALSE, '^^');
                 } else {
-                    $doc->addField('categories', $category->cat_name);
+                    $cat_array[] = $category->cat_name;
                 }
             }
+            $doc->set_field('cateogories', $cat_array);
         }
         
         //get all the taxonomy names used by wp
@@ -215,17 +223,21 @@ function dezi4w_build_document( $post_info, $domain = NULL, $path = NULL) {
             //we are creating *_taxonomy as dynamic fields using our schema
             //so lets set up all our taxonomies in that format
             $parent = $parent."_taxonomy";
+            $term_array = array();
             foreach ($terms as $term) {
-              $doc->addField($parent, $term->name);
+              $term_array[] = $term->name;
             }
+            $doc->set_field($parent, $term_array);
           }
         }
         
         $tags = get_the_tags($post_info->ID);
         if ( ! $tags == NULL ) { 
+            $tag_array = array();
             foreach( $tags as $tag ) {
-                $doc->addField('tags', $tag->name);
+                $tag_array[] = $tag->name;
             }
+            $doc->set_field('tags', $tag_array);
         }
         
         if (count($index_custom_fields)>0 && count($custom_fields = get_post_custom($post_info->ID))) {
@@ -259,16 +271,18 @@ function dezi4w_post( $documents, $commit = TRUE, $optimize = FALSE) {
             
             if ($documents) {
                 syslog(LOG_ERR,"posting " . count($documents) . " documents for blog:" . get_bloginfo('wpurl'));
-                $dezi->addDocuments( $documents );
+                foreach ($documents as $doc) {
+                    $dezi->index($doc);
+                }
             }
             
             if ($commit) {
-               syslog(LOG_ERR,"telling Solr to commit");
-                $dezi->commit();
+               syslog(LOG_ERR,"telling Dezi to commit");
+               $dezi->commit();
             }
             
             if ($optimize) {
-                $dezi->optimize();
+                //$dezi->optimize(); // TODO?
             }
         }
         else {
