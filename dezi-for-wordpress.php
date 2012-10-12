@@ -8,7 +8,7 @@ Author: Peter Karman
 Author URI: http://apmg.github.com/
 License: MIT
 */
-/*  
+/*
     Copyright (c) 2012 American Public Media Group
 
     Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -41,8 +41,14 @@ if (version_compare($wp_version, '3.0', '<')) {
     exit ($errmsg);
 }
 
-require_once(dirname(__FILE__) . '/Dezi_Client.php');
+require_once dirname(__FILE__) . '/Dezi_Client.php';
 
+
+/**
+ *
+ *
+ * @return unknown
+ */
 function dezi4w_get_option() {
     $indexall = FALSE;
     $option = 'plugin_dezi4w_settings';
@@ -50,7 +56,7 @@ function dezi4w_get_option() {
         $plugin_dezi4w_settings = get_site_option($option);
         $indexall = $plugin_dezi4w_settings['dezi4w_index_all_sites'];
     }
-    
+
     if ($indexall) {
         return get_site_option($option);
     } else {
@@ -58,66 +64,86 @@ function dezi4w_get_option() {
     }
 }
 
+
+/**
+ *
+ *
+ * @param unknown $optval
+ */
 function dezi4w_update_option($optval) {
     $indexall = FALSE;
     $option = 'plugin_dezi4w_settings';
     if (is_multisite()) {
-       $plugin_dezi4w_settings = get_site_option($option);
-       $indexall = $plugin_dezi4w_settings['dezi4w_index_all_sites'];
+        $plugin_dezi4w_settings = get_site_option($option);
+        $indexall = $plugin_dezi4w_settings['dezi4w_index_all_sites'];
     }
-    
+
     if ($indexall) {
         update_site_option($option, $optval);
     } else {
         update_option($option, $optval);
     }
 }
+
+
 /**
  * Connect to the dezi service
- * @param $server_id string/int its either master or array index
+ *
+ * @param unknown $server_id (optional) string/int its either master or array index
  * @return dezi service object
  */
 function dezi4w_get_dezi($server_id = NULL) {
-  # get the connection options
-  $plugin_dezi4w_settings = dezi4w_get_option();
-  //if the provided server_id does not exist use the default id 'master'
-  if(!$plugin_dezi4w_settings['dezi4w_server']['info'][$server_id]['host']) {
-    $server_id = $plugin_dezi4w_settings['dezi4w_server']['type']['update'];
-  }
-  $host = $plugin_dezi4w_settings['dezi4w_server']['info'][$server_id]['host'];
-  $port = $plugin_dezi4w_settings['dezi4w_server']['info'][$server_id]['port'];
-  $path = $plugin_dezi4w_settings['dezi4w_server']['info'][$server_id]['path'];
-  $un   = $plugin_dezi4w_settings['dezi4w_server']['info'][$server_id]['username'];
-  $pw   = $plugin_dezi4w_settings['dezi4w_server']['info'][$server_id]['password'];
-  # double check everything has been set
-  if ( ! ($host and $port and $path) ) {
-    syslog(LOG_ERR,"host, port or path are empty, host:$host, port:$port, path:$path");
-    return NULL;
-  }
+    // get the connection options
+    $plugin_dezi4w_settings = dezi4w_get_option();
+    //if the provided server_id does not exist use the default id 'master'
+    if (!$plugin_dezi4w_settings['dezi4w_server']['info'][$server_id]['host']) {
+        $server_id = $plugin_dezi4w_settings['dezi4w_server']['type']['update'];
+    }
+    $host = $plugin_dezi4w_settings['dezi4w_server']['info'][$server_id]['host'];
+    $port = $plugin_dezi4w_settings['dezi4w_server']['info'][$server_id]['port'];
+    $path = $plugin_dezi4w_settings['dezi4w_server']['info'][$server_id]['path'];
+    $un   = $plugin_dezi4w_settings['dezi4w_server']['info'][$server_id]['username'];
+    $pw   = $plugin_dezi4w_settings['dezi4w_server']['info'][$server_id]['password'];
+    // double check everything has been set
+    if ( ! ($host and $port and $path) ) {
+        syslog(LOG_ERR, "host, port or path are empty, host:$host, port:$port, path:$path");
+        return NULL;
+    }
 
-  # create the dezi client object
-  $dezi = new Dezi_Client(array('server'=>"$host/$path:$port", 'username'=>$un, 'password'=>$pw));
+    // create the dezi client object
+    $dezi = new Dezi_Client(array('server'=>"$host/$path:$port", 'username'=>$un, 'password'=>$pw));
 
-  return $dezi;
+    return $dezi;
 }
 
 
 /**
  * check if the server by pinging it
- * @param server if wanting to ping a different 
+ *
+ * @param server  if wanting to ping a different
  *        server than default provide name
+ * @param unknown $server_id (optional)
  * @return boolean
  */
 function dezi4w_ping_server($server_id = NULL) {
-  $dezi = dezi4w_get_dezi($server);
-  $ping = FALSE;
-  # if we want to check if the server is alive, ping it
-  if ($dezi->ping()) {
-    $ping = TRUE;
-  }
-  return $ping;
+    $dezi = dezi4w_get_dezi($server);
+    $ping = FALSE;
+    // if we want to check if the server is alive, ping it
+    if ($dezi->ping()) {
+        $ping = TRUE;
+    }
+    return $ping;
 }
 
+
+/**
+ *
+ *
+ * @param unknown $post_info
+ * @param unknown $domain    (optional)
+ * @param unknown $path      (optional)
+ * @return unknown
+ */
 function dezi4w_build_document( $post_info, $domain = NULL, $path = NULL) {
     global $blog_id;
     global $current_blog;
@@ -128,31 +154,31 @@ function dezi4w_build_document( $post_info, $domain = NULL, $path = NULL) {
     $categoy_as_taxonomy = $plugin_dezi4w_settings['dezi4w_cat_as_taxo'];
     $index_comments = $plugin_dezi4w_settings['dezi4w_index_comments'];
     $index_custom_fields = $plugin_dezi4w_settings['dezi4w_index_custom_fields'];
-    
+
     if ($post_info) {
-        
-        # check if we need to exclude this document
+
+        // check if we need to exclude this document
         if (is_multisite() && in_array($current_blog->domain . $post_info->ID, (array)$exclude_ids)) {
             return NULL;
         } else if ( !is_multisite() && in_array($post_info->ID, (array)$exclude_ids) ) {
-            return NULL;
-        }
-        
+                return NULL;
+            }
+
         $doc = new Dezi_Doc(array('uri'=>get_permalink( $post_info->ID )));
         $auth_info = get_userdata( $post_info->post_author );
-        
-        # wpmu specific info
+
+        // wpmu specific info
         if (is_multisite()) {
             // if we get here we expect that we've "switched" what blog we're running
             // as
-            
+
             if ($domain == NULL)
                 $domain = $current_blog->domain;
-            
+
             if ($path == NULL)
                 $path = $current_blog->path;
-            
-            
+
+
             $blogid = get_blog_id_from_url($domain, $path);
             $doc->set_field( 'id', $domain . $path . $post_info->ID );
             $doc->set_field( 'permalink', get_blog_permalink($blogid, $post_info->ID));
@@ -165,7 +191,7 @@ function dezi4w_build_document( $post_info, $domain = NULL, $path = NULL) {
             $doc->set_field( 'permalink', get_permalink( $post_info->ID ) );
             $doc->set_field( 'wp', 'wp');
         }
-        
+
         $numcomments = 0;
         if ($index_comments) {
             $comments = get_comments("status=approve&post_id={$post_info->ID}");
@@ -176,12 +202,12 @@ function dezi4w_build_document( $post_info, $domain = NULL, $path = NULL) {
             }
             $doc->set_field('comments', $comment_array);
         }
-           
+
         $doc->set_field( 'title', $post_info->post_title );
         $doc->set_field( 'body', strip_tags($post_info->post_content) );
 
         // rawcontent strips out characters lower than 0x20
-        $doc->set_field( 'rawcontent', strip_tags(preg_replace('/[^(\x20-\x7F)\x0A]*/','', $post_info->post_content)));
+        $doc->set_field( 'rawcontent', strip_tags(preg_replace('/[^(\x20-\x7F)\x0A]*/', '', $post_info->post_content)));
 
         // contentnoshortcodes also strips characters below 0x20 but also strips shortcodes
         // used in WP to add images or other content, useful if you're pulling this data
@@ -189,10 +215,10 @@ function dezi4w_build_document( $post_info, $domain = NULL, $path = NULL) {
         //
         // For example
         //   [caption id="attachment_92495" align="alignright" width="160" caption="Duane Sand"][/caption] FARGO - Republican U.S. Senate...
-        // 
+        //
         // Will become
         //   FARGO - Republican U.S. Senate...
-        $doc->set_field( 'contentnoshortcodes', strip_tags(preg_replace('/[^(\x20-\x7F)\x0A]*/','', strip_tags(strip_shortcodes($post_info->post_content)))));
+        $doc->set_field( 'contentnoshortcodes', strip_tags(preg_replace('/[^(\x20-\x7F)\x0A]*/', '', strip_tags(strip_shortcodes($post_info->post_content)))));
         $doc->set_field( 'numcomments', $numcomments );
         $doc->set_field( 'author', $auth_info->display_name );
         $doc->set_field( 'author_s', get_author_posts_url($auth_info->ID, $auth_info->user_nicename));
@@ -205,7 +231,7 @@ function dezi4w_build_document( $post_info, $domain = NULL, $path = NULL) {
         $categories = get_the_category($post_info->ID);
         if ( ! $categories == NULL ) {
             $cat_array = array();
-            foreach( $categories as $category ) {
+            foreach ( $categories as $category ) {
                 if ($categoy_as_taxonomy) {
                     $cat_array[] = get_category_parents($category->cat_ID, FALSE, '^^');
                 } else {
@@ -214,86 +240,105 @@ function dezi4w_build_document( $post_info, $domain = NULL, $path = NULL) {
             }
             $doc->set_field('cateogories', $cat_array);
         }
-        
+
         //get all the taxonomy names used by wp
-        $taxonomies = (array)get_taxonomies(array('_builtin'=>FALSE),'names');
-        foreach($taxonomies as $parent) {
-          $terms = get_the_terms( $post_info->ID, $parent );
-          if ((array) $terms === $terms) {
-            //we are creating *_taxonomy as dynamic fields using our schema
-            //so lets set up all our taxonomies in that format
-            $parent = $parent."_taxonomy";
-            $term_array = array();
-            foreach ($terms as $term) {
-              $term_array[] = $term->name;
+        $taxonomies = (array)get_taxonomies(array('_builtin'=>FALSE), 'names');
+        foreach ($taxonomies as $parent) {
+            $terms = get_the_terms( $post_info->ID, $parent );
+            if ((array) $terms === $terms) {
+                //we are creating *_taxonomy as dynamic fields using our schema
+                //so lets set up all our taxonomies in that format
+                $parent = $parent."_taxonomy";
+                $term_array = array();
+                foreach ($terms as $term) {
+                    $term_array[] = $term->name;
+                }
+                $doc->set_field($parent, $term_array);
             }
-            $doc->set_field($parent, $term_array);
-          }
         }
-        
+
         $tags = get_the_tags($post_info->ID);
-        if ( ! $tags == NULL ) { 
+        if ( ! $tags == NULL ) {
             $tag_array = array();
-            foreach( $tags as $tag ) {
+            foreach ( $tags as $tag ) {
                 $tag_array[] = $tag->name;
             }
             $doc->set_field('tags', $tag_array);
         }
-        
+
         if (count($index_custom_fields)>0 && count($custom_fields = get_post_custom($post_info->ID))) {
-        	foreach ((array)$index_custom_fields as $field_name ) {
-          	$field = (array)$custom_fields[$field_name];
-    				foreach ( $field as $key => $value ) {
-    					$doc->addField($field_name . '_str', $value);
-    					$doc->addField($field_name . '_srch', $value);
-    				}
-        	}
+            foreach ((array)$index_custom_fields as $field_name ) {
+                $field = (array)$custom_fields[$field_name];
+                foreach ( $field as $key => $value ) {
+                    $doc->addField($field_name . '_str', $value);
+                    $doc->addField($field_name . '_srch', $value);
+                }
+            }
         }
     } else {
         // this will fire during blog sign up on multisite, not sure why
         _e('Post Information is NULL', 'dezi4wp');
     }
-    syslog(LOG_ERR, "built document for $blog_id - $domain$path with title " .  $post_info->post_title . 
-      " and status of " . $post_info->post_status);
+    syslog(LOG_ERR, "built document for $blog_id - $domain$path with title " .  $post_info->post_title .
+        " and status of " . $post_info->post_status);
     return $doc;
 }
 
+
+/**
+ *
+ *
+ * @param unknown $thedate
+ * @return unknown
+ */
 function dezi4w_format_date( $thedate ) {
     $datere = '/(\d{4}-\d{2}-\d{2})\s(\d{2}:\d{2}:\d{2})/';
     $replstr = '${1}T${2}Z';
     return preg_replace($datere, $replstr, $thedate);
 }
 
-function dezi4w_post( $documents, $commit = TRUE, $optimize = FALSE) { 
+
+/**
+ *
+ *
+ * @param unknown $documents
+ * @param unknown $commit    (optional)
+ * @param unknown $optimize  (optional)
+ */
+function dezi4w_post( $documents, $commit = TRUE, $optimize = FALSE) {
     try {
         $dezi = dezi4w_get_dezi();
         if ( ! $dezi == NULL ) {
-            
+
             if ($documents) {
-                syslog(LOG_ERR,"posting " . count($documents) . " documents for blog:" . get_bloginfo('wpurl'));
+                syslog(LOG_ERR, "posting " . count($documents) . " documents for blog:" . get_bloginfo('wpurl'));
                 foreach ($documents as $doc) {
                     $dezi->index($doc);
                 }
             }
-            
+
             if ($commit) {
-               syslog(LOG_ERR,"telling Dezi to commit");
-               $dezi->commit();
+                syslog(LOG_ERR, "telling Dezi to commit");
+                $dezi->commit();
             }
-            
+
             if ($optimize) {
                 //$dezi->optimize(); // TODO?
             }
         }
         else {
-          syslog(LOG_ERR, "failed to get a dezi instance created");
+            syslog(LOG_ERR, "failed to get a dezi instance created");
         }
     } catch ( Exception $e ) {
-        syslog(LOG_ERR,"ERROR: " . $e->getMessage());
+        syslog(LOG_ERR, "ERROR: " . $e->getMessage());
         //echo $e->getMessage();
     }
 }
 
+
+/**
+ *
+ */
 function dezi4w_optimize() {
     try {
         $dezi = dezi4w_get_dezi();
@@ -301,10 +346,16 @@ function dezi4w_optimize() {
             $dezi->optimize();
         }
     } catch ( Exception $e ) {
-        syslog(LOG_ERR,$e->getMessage());
+        syslog(LOG_ERR, $e->getMessage());
     }
 }
 
+
+/**
+ *
+ *
+ * @param unknown $doc_id
+ */
 function dezi4w_delete( $doc_id ) {
     try {
         $dezi = dezi4w_get_dezi();
@@ -313,10 +364,14 @@ function dezi4w_delete( $doc_id ) {
             $dezi->commit();
         }
     } catch ( Exception $e ) {
-        syslog(LOG_ERR,$e->getMessage());
+        syslog(LOG_ERR, $e->getMessage());
     }
 }
 
+
+/**
+ *
+ */
 function dezi4w_delete_all() {
     try {
         $dezi = dezi4w_get_dezi();
@@ -329,6 +384,12 @@ function dezi4w_delete_all() {
     }
 }
 
+
+/**
+ *
+ *
+ * @param unknown $blogid
+ */
 function dezi4w_delete_blog($blogid) {
     try {
         $dezi = dezi4w_get_dezi();
@@ -341,14 +402,20 @@ function dezi4w_delete_blog($blogid) {
     }
 }
 
+
+/**
+ *
+ *
+ * @param unknown $blogid
+ */
 function dezi4w_load_blog_all($blogid) {
     global $wpdb;
     $documents = array();
     $cnt = 0;
     $batchsize = 10;
-    
+
     $bloginfo = get_blog_details($blogid, FALSE);
-   
+
     if ($bloginfo->public && !$bloginfo->archived && !$bloginfo->spam && !$bloginfo->deleted) {
         $postids = $wpdb->get_results("SELECT ID FROM {$wpdb->base_prefix}{$blogid}_posts WHERE post_status = 'publish';");
         for ($idx = 0; $idx < count($postids); $idx++) {
@@ -361,30 +428,36 @@ function dezi4w_load_blog_all($blogid) {
                 $documents = array();
             }
         }
-        
+
         if ($documents) {
             dezi4w_post($documents);
         }
     }
 }
 
+
+/**
+ *
+ *
+ * @param unknown $post_id
+ */
 function dezi4w_handle_modified( $post_id ) {
     global $current_blog;
     $post_info = get_post( $post_id );
     $plugin_dezi4w_settings = dezi4w_get_option();
     $index_pages = $plugin_dezi4w_settings['dezi4w_content']['index']['page'];
     $index_posts = $plugin_dezi4w_settings['dezi4w_content']['index']['post'];
-    
+
     dezi4w_handle_status_change( $post_id, $post_info );
 
-    if (($index_pages && $post_info->post_type == 'page' && $post_info->post_status == 'publish') || 
+    if (($index_pages && $post_info->post_type == 'page' && $post_info->post_status == 'publish') ||
         ($index_posts && $post_info->post_type == 'post' && $post_info->post_status == 'publish')) {
-        
-        # make sure this blog is not private or a spam if indexing on a multisite install
+
+        // make sure this blog is not private or a spam if indexing on a multisite install
         if (is_multisite() && ($current_blog->public != 1 || $current_blog->spam == 1 || $current_blog->archived == 1)) {
             return;
         }
-        
+
         $docs = array();
         $doc = dezi4w_build_document( $post_info , $current_blog->domain , $current_blog->path );
         if ( $doc ) {
@@ -394,45 +467,58 @@ function dezi4w_handle_modified( $post_id ) {
     }
 }
 
+
+/**
+ *
+ *
+ * @param unknown $post_id
+ * @param unknown $post_info (optional)
+ */
 function dezi4w_handle_status_change( $post_id, $post_info = null ) {
     global $current_blog;
-	
-	if ( ! $post_info ){
-    	$post_info = get_post( $post_id );
-	}
-	
+
+    if ( ! $post_info ) {
+        $post_info = get_post( $post_id );
+    }
+
     $plugin_dezi4w_settings = dezi4w_get_option();
     $private_page = $plugin_dezi4w_settings['dezi4w_private_page'];
     $private_post = $plugin_dezi4w_settings['dezi4w_private_post'];
-    
+
     if ( ($private_page && $post_info->post_type == 'page') || ($private_post && $post_info->post_type == 'post') ) {
-	 	/**
-		 * We need to check if the status of the post has changed.
-	     * Inline edits won't have the prev_status of original_post_status,
-	     * instead we check of the _inline_edit variable is present in the $_POST variable
-	    */
-	    if ( ($_POST['prev_status'] == 'publish' || $_POST['original_post_status'] == 'publish' || 
-				( isset( $_POST['_inline_edit'] ) && !empty( $_POST['_inline_edit']) ) )  && 
-				($post_info->post_status == 'draft' || $post_info->post_status == 'private') ) {
-	
-			if (is_multisite()) {
+
+        /**
+         * We need to check if the status of the post has changed.
+         * Inline edits won't have the prev_status of original_post_status,
+         * instead we check of the _inline_edit variable is present in the $_POST variable
+         */
+        if ( ($_POST['prev_status'] == 'publish' || $_POST['original_post_status'] == 'publish' ||
+                ( isset( $_POST['_inline_edit'] ) && !empty( $_POST['_inline_edit']) ) )  &&
+            ($post_info->post_status == 'draft' || $post_info->post_status == 'private') ) {
+
+            if (is_multisite()) {
                 dezi4w_delete( $current_blog->domain . $current_blog->path . $post_info->ID );
-          	} else {
-         		dezi4w_delete( $post_info->ID );
-          	}
+            } else {
+                dezi4w_delete( $post_info->ID );
+            }
         }
     }
 }
 
 
+/**
+ *
+ *
+ * @param unknown $post_id
+ */
 function dezi4w_handle_delete( $post_id ) {
     global $current_blog;
     $post_info = get_post( $post_id );
-    syslog(LOG_ERR,"deleting post titled '" . $post_info->post_title . "' for " . $current_blog->domain . $current_blog->path);
+    syslog(LOG_ERR, "deleting post titled '" . $post_info->post_title . "' for " . $current_blog->domain . $current_blog->path);
     $plugin_dezi4w_settings = dezi4w_get_option();
     $delete_page = $plugin_dezi4w_settings['dezi4w_delete_page'];
     $delete_post = $plugin_dezi4w_settings['dezi4w_delete_post'];
-    
+
     if ( ($delete_page && $post_info->post_type == 'page') || ($delete_post && $post_info->post_type == 'post') ) {
         if (is_multisite()) {
             dezi4w_delete( $current_blog->domain . $current_blog->path . $post_info->ID );
@@ -442,48 +528,97 @@ function dezi4w_handle_delete( $post_id ) {
     }
 }
 
+
+/**
+ *
+ *
+ * @param unknown $blogid
+ */
 function dezi4w_handle_deactivate_blog($blogid) {
     dezi4w_delete_blog($blogid);
 }
 
+
+/**
+ *
+ *
+ * @param unknown $blogid
+ */
 function dezi4w_handle_activate_blog($blogid) {
     dezi4w_apply_config_to_blog($blogid);
     dezi4w_load_blog_all($blogid);
 }
 
+
+/**
+ *
+ *
+ * @param unknown $blogid
+ */
 function dezi4w_handle_archive_blog($blogid) {
     dezi4w_delete_blog($blogid);
 }
 
+
+/**
+ *
+ *
+ * @param unknown $blogid
+ */
 function dezi4w_handle_unarchive_blog($blogid) {
     dezi4w_apply_config_to_blog($blogid);
     dezi4w_load_blog_all($blogid);
 }
 
+
+/**
+ *
+ *
+ * @param unknown $blogid
+ */
 function dezi4w_handle_spam_blog($blogid) {
     dezi4w_delete_blog($blogid);
 }
 
+
+/**
+ *
+ *
+ * @param unknown $blogid
+ */
 function dezi4w_handle_unspam_blog($blogid) {
     dezi4w_apply_config_to_blog($blogid);
     dezi4w_load_blog_all($blogid);
 }
 
+
+/**
+ *
+ *
+ * @param unknown $blogid
+ */
 function dezi4w_handle_delete_blog($blogid) {
     dezi4w_delete_blog($blogid);
 }
 
+
+/**
+ *
+ *
+ * @param unknown $blogid
+ */
 function dezi4w_handle_new_blog($blogid) {
     dezi4w_apply_config_to_blog($blogid);
     dezi4w_load_blog_all($blogid);
 }
 
+
 /**
  * This function indexes all the different content types.
  * This does not include attachments and revisions
  *
- * @param $prev 
- * @param $type what content to index: post type machine name or all content.
+ * @param unknown $prev
+ * @param unknown $type (optional) what content to index: post type machine name or all content.
  * @return string (json reply)
  */
 function dezi4w_load_all_posts($prev, $type = 'all') {
@@ -495,37 +630,37 @@ function dezi4w_load_all_posts($prev, $type = 'all') {
     $found = FALSE;
     $end = FALSE;
     $percent = 0;
-    
+
     //multisite logic is decided dezi4w_get_option
     $plugin_dezi4w_settings = dezi4w_get_option();
     $blog_id = $blog->blog_id;
-    
+
     //retrieve the post types that can be indexed
     $indexable_content = $plugin_dezi4w_settings['dezi4w_content']['index'];
     $indexable_type = array_keys($indexable_content);
     //if the provided $type is not allowed to be index, lets stop
-    if (!in_array($type,$indexable_type) && $type != 'all') { 
-      return false;
+    if (!in_array($type, $indexable_type) && $type != 'all') {
+        return false;
     }
     //lets setup our where clause to find the appropriate posts
     $where_and = ($type == 'all') ?"AND post_type IN ('".implode("', '", $indexable_type). "')" : " AND post_type = '$type'";
     if ($plugin_dezi4w_settings['dezi4w_index_all_sites']) {
 
         // there is potential for this to run for an extended period of time, depending on the # of blgos
-        syslog(LOG_ERR,"starting batch import, setting max execution time to unlimited"); 
+        syslog(LOG_ERR, "starting batch import, setting max execution time to unlimited");
         ini_set('memory_limit', '1024M');
         set_time_limit(0);
 
         // get a list of blog ids
         $bloglist = $wpdb->get_col("SELECT * FROM {$wpdb->base_prefix}blogs WHERE spam = 0 AND deleted = 0", 0);
-        syslog(LOG_ERR,"pushing posts from " . count($bloglist) . " blogs into Solr");
+        syslog(LOG_ERR, "pushing posts from " . count($bloglist) . " blogs into Solr");
         foreach ($bloglist as $bloginfo) {
 
-            // for each blog we need to import we get their id 
+            // for each blog we need to import we get their id
             // and tell wordpress to switch to that blog
             $blog_id = trim($bloginfo);
 
-            syslog(LOG_ERR,"switching to blogid $blog_id");
+            syslog(LOG_ERR, "switching to blogid $blog_id");
 
             // attempt to save some memory by flushing wordpress's cache
             wp_cache_flush();
@@ -536,12 +671,12 @@ function dezi4w_load_all_posts($prev, $type = 'all') {
             switch_to_blog($blog_id);
 
             // now we actually gather the blog posts
-            
+
             $postids = $wpdb->get_results("SELECT ID FROM {$wpdb->base_prefix}{$bloginfo}_posts WHERE post_status = 'publish' $where_and ORDER BY ID;");
             $postcount = count($postids);
-            syslog(LOG_ERR,"building $postcount documents for " . substr(get_bloginfo('wpurl'),7));
+            syslog(LOG_ERR, "building $postcount documents for " . substr(get_bloginfo('wpurl'), 7));
             for ($idx = 0; $idx < $postcount; $idx++) {
-                
+
                 $postid = $postids[$idx]->ID;
                 $last = $postid;
                 $percent = (floatval($idx) / floatval($postcount)) * 100;
@@ -549,17 +684,17 @@ function dezi4w_load_all_posts($prev, $type = 'all') {
                     if ($postid === $prev) {
                         $found = TRUE;
                     }
-                    
+
                     continue;
                 }
-                
+
                 if ($idx === $postcount - 1) {
                     $end = TRUE;
                 }
-                
+
                 // using wpurl is better because it will return the proper
                 // URL for the blog whether it is a subdomain install or otherwise
-                $documents[] = dezi4w_build_document( get_blog_post($blog_id, $postid), substr(get_bloginfo('wpurl'),7), $current_site->path );
+                $documents[] = dezi4w_build_document( get_blog_post($blog_id, $postid), substr(get_bloginfo('wpurl'), 7), $current_site->path );
                 $cnt++;
                 if ($cnt == $batchsize) {
                     dezi4w_post( $documents, false, false);
@@ -575,12 +710,12 @@ function dezi4w_load_all_posts($prev, $type = 'all') {
             dezi4w_post(false, true, false);
             $cnt = 0;
             $documents = array();
-            syslog(LOG_ERR,"finished building $postcount documents for " . substr(get_bloginfo('wpurl'),7));
+            syslog(LOG_ERR, "finished building $postcount documents for " . substr(get_bloginfo('wpurl'), 7));
             wp_cache_flush();
         }
 
         // done importing so lets switch back to the proper blog id
-       restore_current_blog();
+        restore_current_blog();
     } else {
         $posts = $wpdb->get_results("SELECT ID FROM $wpdb->posts WHERE post_status = 'publish' $where_and ORDER BY ID;" );
         $postcount = count($posts);
@@ -594,7 +729,7 @@ function dezi4w_load_all_posts($prev, $type = 'all') {
                 }
                 continue;
             }
-            
+
             if ($idx === $postcount - 1) {
                 $end = TRUE;
             }
@@ -609,11 +744,11 @@ function dezi4w_load_all_posts($prev, $type = 'all') {
             }
         }
     }
-    
+
     if ( $documents ) {
         dezi4w_post( $documents , FALSE, FALSE);
     }
-    
+
     if ($end) {
         dezi4w_post(FALSE, TRUE, FALSE);
         printf("{\"type\": \"%s\", \"last\": \"%s\", \"end\": true, \"percent\": \"%.2f\"}", $type, $last, $percent);
@@ -622,34 +757,44 @@ function dezi4w_load_all_posts($prev, $type = 'all') {
     }
 }
 
+
+/**
+ *
+ */
 function dezi4w_search_form() {
     $sort = $_GET['sort'];
     $order = $_GET['order'];
     $server = $_GET['server'];
-    
-    
+
+
     if ($sort == 'date') {
         $sortval = __('<option value="score">Score</option><option value="date" selected="selected">Date</option><option value="modified">Last Modified</option>');
     } else if ($sort == 'modified') {
-        $sortval = __('<option value="score">Score</option><option value="date">Date</option><option value="modified" selected="selected">Last Modified</option>');
-    } else {
+            $sortval = __('<option value="score">Score</option><option value="date">Date</option><option value="modified" selected="selected">Last Modified</option>');
+        } else {
         $sortval = __('<option value="score" selected="selected">Score</option><option value="date">Date</option><option value="modified">Last Modified</option>');
     }
-    
+
     if ($order == 'asc') {
         $orderval = __('<option value="desc">Descending</option><option value="asc" selected="selected">Ascending</option>');
     } else {
         $orderval = __('<option value="desc" selected="selected">Descending</option><option value="asc">Ascending</option>');
     }
     //if server id has been defined keep hold of it
-    if($server) {
-      $serverval = '<input name="server" type="hidden" value="'.$server.'" />';
+    if ($server) {
+        $serverval = '<input name="server" type="hidden" value="'.$server.'" />';
     }
     $form = __('<form name="searchbox" method="get" id="searchbox" action=""><input type="text" id="qrybox" name="s" value="%s"/><input type="submit" id="searchbtn" /><label for="sortselect" id="sortlabel">Sort By:</label><select name="sort" id="sortselect">%s</select><label for="orderselect" id="orderlabel">Order By:</label><select name="order" id="orderselect">%s</select>%s</form>');
-    
-    printf($form, htmlspecialchars(stripslashes($_GET['s'])), $sortval, $orderval,$serverval);
+
+    printf($form, htmlspecialchars(stripslashes($_GET['s'])), $sortval, $orderval, $serverval);
 }
 
+
+/**
+ *
+ *
+ * @return unknown
+ */
 function dezi4w_search_results() {
     $qry = stripslashes($_GET['s']);
     $offset = $_GET['offset'];
@@ -659,7 +804,7 @@ function dezi4w_search_results() {
     $order = $_GET['order'];
     $isdym = $_GET['isdym'];
     $server = $_GET['server'];
-    
+
     $plugin_dezi4w_settings = dezi4w_get_option();
     $output_info = $plugin_dezi4w_settings['dezi4w_output_info'];
     $output_pager = $plugin_dezi4w_settings['dezi4w_output_pager'];
@@ -668,40 +813,40 @@ function dezi4w_search_results() {
     $categoy_as_taxonomy = $plugin_dezi4w_settings['dezi4w_cat_as_taxo'];
     $dym_enabled = $plugin_dezi4w_settings['dezi4w_enable_dym'];
     $out = array();
-    
+
     if ( ! $qry ) {
         $qry = '';
     }
-    //if server value has been set lets set it up here 
+    //if server value has been set lets set it up here
     // and add it to all the search urls henceforth
     if ($server) {
-      $serverval = '&server='.$server;
+        $serverval = '&server='.$server;
     }
-    # set some default values
+    // set some default values
     if ( ! $offset ) {
         $offset = 0;
     }
-    
-    # only use default if not specified in post information
+
+    // only use default if not specified in post information
     if ( ! $count ) {
         $count = $results_per_page;
     }
-        
+
     if ( ! $fq ) {
         $fq = '';
     }
-    
+
     if ( $sort && $order ) {
         $sortby = $sort . ' ' . $order;
     } else {
         $sortby = '';
         $order = '';
     }
-    
+
     if ( ! $isdym ) {
         $isdym = 0;
     }
-    
+
     $fqstr = '';
     $fqitms = split('\|\|', stripslashes($fq));
     $selectedfacets = array();
@@ -711,13 +856,13 @@ function dezi4w_search_results() {
             $selectedfacet = array();
             $selectedfacet['name'] = sprintf(__("%s:%s"), ucwords(preg_replace('/_str$/i', '', $splititm[0])), str_replace("^^", "/", $splititm[1]));
             $removelink = '';
-            foreach($fqitms as $fqitem2) {
+            foreach ($fqitms as $fqitem2) {
                 if ($fqitem2 && !($fqitem2 === $fqitem)) {
                     $splititm2 = split(':', $fqitem2, 2);
                     $removelink = $removelink . urlencode('||') . $splititm2[0] . ':' . urlencode($splititm2[1]);
                 }
             }
-            
+
             if ($removelink) {
                 $selectedfacet['removelink'] = htmlspecialchars(sprintf(__("?s=%s&fq=%s"), urlencode($qry), $removelink));
             } else {
@@ -725,9 +870,9 @@ function dezi4w_search_results() {
             }
             //if server is set add it on the end of the url
             $selectedfacet['removelink'] .=$serverval;
-            
+
             $fqstr = $fqstr . urlencode('||') . $splititm[0] . ':' . urlencode($splititm[1]);
-            
+
             $selectedfacets[] = $selectedfacet;
         }
     }
@@ -740,11 +885,11 @@ function dezi4w_search_results() {
             $header = $results->responseHeader;
             $teasers = get_object_vars($results->highlighting);
             $didyoumean = $results->spellcheck->suggestions->collation;
-            
+
             if ($output_info) {
                 $out['hits'] = sprintf(__("%d"), $response->numFound);
                 $out['qtime'] = sprintf(__("%.3f"), $header->QTime/1000);
-                
+
                 if ($didyoumean && !$isdym && $dym_enabled) {
                     $dymout = array();
                     $dymout['term'] = htmlspecialchars($didyoumean);
@@ -752,19 +897,19 @@ function dezi4w_search_results() {
                     //if server is set add it on the end of the url
                     $selectedfacet['removelink'] .=$serverval;
                     $out['dym'] = $dymout.$serverval;
-                }   
+                }
             }
-                        
-            if ($output_pager) {      
-                # calculate the number of pages
+
+            if ($output_pager) {
+                // calculate the number of pages
                 $numpages = ceil($response->numFound / $count);
                 $currentpage = ceil($offset / $count) + 1;
                 $pagerout = array();
-                
+
                 if ($numpages == 0) {
                     $numpages = 1;
                 }
-                
+
                 foreach (range(1, $numpages) as $pagenum) {
                     if ( $pagenum != $currentpage ) {
                         $offsetnum = ($pagenum - 1) * $count;
@@ -772,12 +917,12 @@ function dezi4w_search_results() {
                         $pageritm['page'] = sprintf(__("%d"), $pagenum);
                         $pagerlink = sprintf(__("?s=%s&offset=%d&count=%d"), urlencode($qry), $offsetnum, $count);
                         if ($order != "")
-                            $pagerlink .= sprintf("&order=%s",$order);
-                                                    
-                        if ($sort != "") 
+                            $pagerlink .= sprintf("&order=%s", $order);
+
+                        if ($sort != "")
                             $pagerlink .= sprintf("&sort=%s", $sort);
 
-                        if($fqstr) $pagerlink .= '&fq=' . $fqstr;
+                        if ($fqstr) $pagerlink .= '&fq=' . $fqstr;
                         $pageritm['link'] = htmlspecialchars($pagerlink);
                         //if server is set add it on the end of the url
                         $selectedfacet['removelink'] .=$serverval;
@@ -789,35 +934,35 @@ function dezi4w_search_results() {
                         $pagerout[] = $pageritm;
                     }
                 }
-                
+
                 $out['pager'] = $pagerout;
             }
-            
+
             if ($output_facets) {
-                # handle facets
+                // handle facets
                 $facetout = array();
 
-                if($results->facet_counts) {
+                if ($results->facet_counts) {
                     foreach ($results->facet_counts->facet_fields as $facetfield => $facet) {
                         if ( ! get_object_vars($facet) ) {
                             continue;
                         }
-                        
+
                         $facetinfo = array();
                         $facetitms = array();
                         $facetinfo['name'] = ucwords(preg_replace('/_str$/i', '', $facetfield));
-                        
-                        # categories is a taxonomy
+
+                        // categories is a taxonomy
                         if ($categoy_as_taxonomy && $facetfield == 'categories') {
-                            # generate taxonomy and counts
+                            // generate taxonomy and counts
                             $taxo = array();
                             foreach ($facet as $facetval => $facetcnt) {
                                 $taxovals = explode('^^', rtrim($facetval, '^^'));
                                 $taxo = dezi4w_gen_taxo_array($taxo, $taxovals);
                             }
-                            
+
                             $facetitms = dezi4w_get_output_taxo($facet, $taxo, '', $fqstr.$serverval, $facetfield);
-                            
+
                         } else {
                             foreach ($facet as $facetval => $facetcnt) {
                                 $facetitm = array();
@@ -826,22 +971,22 @@ function dezi4w_search_results() {
                                 //if server is set add it on the end of the url
                                 $facetitm['link'] .=$serverval;
                                 $facetitm['name'] = $facetval;
-                                $facetitms[] = $facetitm; 
+                                $facetitms[] = $facetitm;
                             }
                         }
-                        
+
                         $facetinfo['items'] = $facetitms;
                         $facetout[$facetfield] = $facetinfo;
                     }
                 }
-                
+
                 $facetout['selected'] = $selectedfacets;
                 $out['facets'] = $facetout;
             }
-            
+
             $resultout = array();
 
-            if ($response->numFound != 0) {                 
+            if ($response->numFound != 0) {
                 foreach ( $response->docs as $doc ) {
                     $resultinfo = array();
                     $docid = strval($doc->id);
@@ -852,7 +997,7 @@ function dezi4w_search_results() {
                     $resultinfo['numcomments'] = $doc->numcomments;
                     $resultinfo['date'] = $doc->displaydate;
 
-                    if ($doc->numcomments === 0) { 
+                    if ($doc->numcomments === 0) {
                         $resultinfo['comment_link'] = $doc->permalink . "#respond";
                     } else {
                         $resultinfo['comment_link'] = $doc->permalink . "#comments";
@@ -877,7 +1022,7 @@ function dezi4w_search_results() {
         $out['hits'] = "0";
     }
 
-    # pager and results count helpers
+    // pager and results count helpers
     $out['query'] = htmlspecialchars($qry);
     $out['offset'] = strval($offset);
     $out['count'] = strval($count);
@@ -886,21 +1031,35 @@ function dezi4w_search_results() {
     $out['sortby'] = $sortby;
     $out['order'] = $order;
     $out['sorting'] = array(
-                        'scoreasc' => htmlspecialchars(sprintf('?s=%s&fq=%s&sort=score&order=asc%s', urlencode($qry), stripslashes($fq), $serverval)),
-                        'scoredesc' => htmlspecialchars(sprintf('?s=%s&fq=%s&sort=score&order=desc%s', urlencode($qry), stripslashes($fq), $serverval)),
-                        'dateasc' => htmlspecialchars(sprintf('?s=%s&fq=%s&sort=date&order=asc%s', urlencode($qry), stripslashes($fq), $serverval)),
-                        'datedesc' => htmlspecialchars(sprintf('?s=%s&fq=%s&sort=date&order=desc%s', urlencode($qry), stripslashes($fq), $serverval)),
-                        'modifiedasc' => htmlspecialchars(sprintf('?s=%s&fq=%s&sort=modified&order=asc%s', urlencode($qry), stripslashes($fq), $serverval)),
-                        'modifieddesc' => htmlspecialchars(sprintf('?s=%s&fq=%s&sort=modified&order=desc%s', urlencode($qry), stripslashes($fq), $serverval)),
-                        'commentsasc' => htmlspecialchars(sprintf('?s=%s&fq=%s&sort=numcomments&order=asc%s', urlencode($qry), stripslashes($fq), $serverval)),
-                        'commentsdesc' => htmlspecialchars(sprintf('?s=%s&fq=%s&sort=numcomments&order=desc%s', urlencode($qry), stripslashes($fq), $serverval))
-                    );
-    
+        'scoreasc' => htmlspecialchars(sprintf('?s=%s&fq=%s&sort=score&order=asc%s', urlencode($qry), stripslashes($fq), $serverval)),
+        'scoredesc' => htmlspecialchars(sprintf('?s=%s&fq=%s&sort=score&order=desc%s', urlencode($qry), stripslashes($fq), $serverval)),
+        'dateasc' => htmlspecialchars(sprintf('?s=%s&fq=%s&sort=date&order=asc%s', urlencode($qry), stripslashes($fq), $serverval)),
+        'datedesc' => htmlspecialchars(sprintf('?s=%s&fq=%s&sort=date&order=desc%s', urlencode($qry), stripslashes($fq), $serverval)),
+        'modifiedasc' => htmlspecialchars(sprintf('?s=%s&fq=%s&sort=modified&order=asc%s', urlencode($qry), stripslashes($fq), $serverval)),
+        'modifieddesc' => htmlspecialchars(sprintf('?s=%s&fq=%s&sort=modified&order=desc%s', urlencode($qry), stripslashes($fq), $serverval)),
+        'commentsasc' => htmlspecialchars(sprintf('?s=%s&fq=%s&sort=numcomments&order=asc%s', urlencode($qry), stripslashes($fq), $serverval)),
+        'commentsdesc' => htmlspecialchars(sprintf('?s=%s&fq=%s&sort=numcomments&order=desc%s', urlencode($qry), stripslashes($fq), $serverval))
+    );
+
     return $out;
 }
 
+
+/**
+ *
+ *
+ * @param unknown $items
+ * @param unknown $pre          (optional)
+ * @param unknown $post         (optional)
+ * @param unknown $before       (optional)
+ * @param unknown $after        (optional)
+ * @param unknown $nestedpre    (optional)
+ * @param unknown $nestedpost   (optional)
+ * @param unknown $nestedbefore (optional)
+ * @param unknown $nestedafter  (optional)
+ */
 function dezi4w_print_facet_items($items, $pre = "<ul>", $post = "</ul>", $before = "<li>", $after = "</li>",
-                                $nestedpre = "<ul>", $nestedpost = "</ul>", $nestedbefore = "<li>", $nestedafter = "</li>") {
+    $nestedpre = "<ul>", $nestedpost = "</ul>", $nestedbefore = "<li>", $nestedafter = "</li>") {
     if (!$items) {
         return;
     }
@@ -908,23 +1067,34 @@ function dezi4w_print_facet_items($items, $pre = "<ul>", $post = "</ul>", $befor
     foreach ($items as $item) {
         printf(__("%s<a href=\"%s\">%s (%s)</a>%s\n"), $before, $item["link"], $item["name"], $item["count"], $after);
         $item_items = isset($item["items"]) ? true : false;
-        
+
         if ($item_items) {
-            dezi4w_print_facet_items($item["items"], $nestedpre, $nestedpost, $nestedbefore, $nestedafter, 
-                                                  $nestedpre, $nestedpost, $nestedbefore, $nestedafter);
+            dezi4w_print_facet_items($item["items"], $nestedpre, $nestedpost, $nestedbefore, $nestedafter,
+                $nestedpre, $nestedpost, $nestedbefore, $nestedafter);
         }
     }
     printf(__("%s\n"), $post);
 }
 
+
+/**
+ *
+ *
+ * @param unknown $facet
+ * @param unknown $taxo
+ * @param unknown $prefix
+ * @param unknown $fqstr
+ * @param unknown $field
+ * @return unknown
+ */
 function dezi4w_get_output_taxo($facet, $taxo, $prefix, $fqstr, $field) {
     $qry = stripslashes($_GET['s']);
-    
+
     if (count($taxo) == 0) {
         return;
     } else {
         $facetitms = array();
-        foreach ($taxo as $taxoname => $taxoval) {                    
+        foreach ($taxo as $taxoname => $taxoval) {
             $newprefix = $prefix . $taxoname . '^^';
             $facetvars = get_object_vars($facet);
             $facetitm = array();
@@ -937,11 +1107,19 @@ function dezi4w_get_output_taxo($facet, $taxo, $prefix, $fqstr, $field) {
             }
             $facetitms[] = $facetitm;
         }
-        
+
         return $facetitms;
     }
 }
 
+
+/**
+ *
+ *
+ * @param unknown $in
+ * @param unknown $vals
+ * @return unknown
+ */
 function dezi4w_gen_taxo_array($in, $vals) {
     if (count($vals) == 1) {
         if ( ! $in[$vals[0]]) {
@@ -954,65 +1132,87 @@ function dezi4w_gen_taxo_array($in, $vals) {
     }
 }
 
+
 /**
  * Query the required server
  * passes all parameters to the appropriate function based on the server name
  * This allows for extensible server/core based query functions.
  * TODO allow for similar theme/output function
+ *
+ * @param unknown $qry
+ * @param unknown $offset
+ * @param unknown $count
+ * @param unknown $fq
+ * @param unknown $sortby
+ * @param unknown $server (optional)
+ * @return unknown
  */
 function dezi4w_query( $qry, $offset, $count, $fq, $sortby, $server = NULL) {
-  //NOTICE: does this needs to be cached to stop the db being hit to grab the options everytime search is being done.
-  $plugin_dezi4w_settings = dezi4w_get_option();
-  //if no server has been provided use the default server
-  if(!$server) {
-    $server = $plugin_dezi4w_settings['dezi4w_server']['type']['search'];
-  }
-  $dezi = dezi4w_get_dezi($server);
-  if (!function_exists($function = 'dezi4w_'.$server.'_query')) {
-    $function = 'dezi4w_master_query';
-  }
-  
-  return $function($dezi, $qry, $offset, $count, $fq, $sortby, $plugin_dezi4w_settings);
+    //NOTICE: does this needs to be cached to stop the db being hit to grab the options everytime search is being done.
+    $plugin_dezi4w_settings = dezi4w_get_option();
+    //if no server has been provided use the default server
+    if (!$server) {
+        $server = $plugin_dezi4w_settings['dezi4w_server']['type']['search'];
+    }
+    $dezi = dezi4w_get_dezi($server);
+    if (!function_exists($function = 'dezi4w_'.$server.'_query')) {
+        $function = 'dezi4w_master_query';
+    }
+
+    return $function($dezi, $qry, $offset, $count, $fq, $sortby, $plugin_dezi4w_settings);
 }
 
+
+/**
+ *
+ *
+ * @param unknown $dezi
+ * @param unknown $qry
+ * @param unknown $offset
+ * @param unknown $count
+ * @param unknown $fq
+ * @param unknown $sortby
+ * @param unknown $plugin_dezi4w_settings (reference)
+ * @return unknown
+ */
 function dezi4w_master_query($dezi, $qry, $offset, $count, $fq, $sortby, &$plugin_dezi4w_settings) {
     $response = NULL;
     $facet_fields = array();
     $number_of_tags = $plugin_dezi4w_settings['dezi4w_max_display_tags'];
-    
+
     if ($plugin_dezi4w_settings['dezi4w_facet_on_categories']) {
-      $facet_fields[] = 'categories';
+        $facet_fields[] = 'categories';
     }
-    
+
     $facet_on_tags = $plugin_dezi4w_settings['dezi4w_facet_on_tags'];
     if ($facet_on_tags) {
-      $facet_fields[] = 'tags';
+        $facet_fields[] = 'tags';
     }
-    
+
     if ($plugin_dezi4w_settings['dezi4w_facet_on_author']) {
-      $facet_fields[] = 'author';
+        $facet_fields[] = 'author';
     }
-    
+
     if ($plugin_dezi4w_settings['dezi4w_facet_on_type']) {
-      $facet_fields[] = 'type';
+        $facet_fields[] = 'type';
     }
-    
-    
+
+
     $facet_on_custom_taxonomy = $plugin_dezi4w_settings['dezi4w_facet_on_taxonomy'];
     if (count($facet_on_custom_taxonomy)) {
-      $taxonomies = (array)get_taxonomies(array('_builtin'=>FALSE),'names');
-      foreach($taxonomies as $parent) {
-        $facet_fields[] = $parent."_taxonomy";
-      }
+        $taxonomies = (array)get_taxonomies(array('_builtin'=>FALSE), 'names');
+        foreach ($taxonomies as $parent) {
+            $facet_fields[] = $parent."_taxonomy";
+        }
     }
-    
+
     $facet_on_custom_fields = $plugin_dezi4w_settings['dezi4w_facet_on_custom_fields'];
     if (count($facet_on_custom_fields)) {
         foreach ( $facet_on_custom_fields as $field_name ) {
-        	$facet_fields[] = $field_name . '_str';
+            $facet_fields[] = $field_name . '_str';
         }
-    }   	
-    
+    }
+
     if ( $dezi ) {
         $params = array();
         $params['defType'] = 'dismax';
@@ -1033,85 +1233,98 @@ function dezi4w_master_query($dezi, $qry, $offset, $count, $fq, $sortby, &$plugi
         $params['spellcheck.collate'] = 'true';
         $params['spellcheck.count'] = '1';
         $params['spellcheck'] = 'true';
-        
+
         if ($facet_on_tags) {
             $params['f.tags.facet.limit'] = $number_of_tags;
         }
 
-        try { 
+        try {
             $response = $dezi->search($qry, $offset, $count, $params);
-            if ( ! $response->getHttpStatus() == 200 ) { 
-                $response = NULL; 
+            if ( ! $response->getHttpStatus() == 200 ) {
+                $response = NULL;
             }
         }
         catch(Exception $e) {
-            syslog(LOG_ERR, "failed to query dezi for " . print_r($qry, true) . print_r($params,true));
+            syslog(LOG_ERR, "failed to query dezi for " . print_r($qry, true) . print_r($params, true));
             $response = NULL;
         }
     }
-    
+
     return $response;
 }
 
+
+/**
+ *
+ */
 function dezi4w_options_init() {
-    
+
     $method = $_POST['method'];
     if ($method === "load") {
         $type = $_POST['type'];
         $prev = $_POST['prev'];
-        
+
         if ($type) {
             dezi4w_load_all_posts($prev, $type);
             exit;
-         } else {
+        } else {
             return;
         }
     }
-    register_setting('s4w-options-group', 'plugin_dezi4w_settings', 'dezi4w_sanitise_options' );   
+    register_setting('s4w-options-group', 'plugin_dezi4w_settings', 'dezi4w_sanitise_options' );
 }
+
 
 /**
  * Sanitises the options values
- * @param $options array of s4w settings options
+ *
+ * @param unknown $options array of s4w settings options
  * @return $options sanitised values
  */
 function dezi4w_sanitise_options($options) {
-  $options['dezi4w_dezi_host'] = wp_filter_nohtml_kses($options['dezi4w_dezi_host']);
-  $options['dezi4w_dezi_port'] = absint($options['dezi4w_dezi_port']);
-  $options['dezi4w_dezi_path'] = wp_filter_nohtml_kses($options['dezi4w_dezi_path']);
-  $options['dezi4w_dezi_update_host'] = wp_filter_nohtml_kses($options['dezi4w_dezi_update_host']);
-  $options['dezi4w_dezi_update_port'] = absint($options['dezi4w_dezi_update_port']);
-  $options['dezi4w_dezi_update_path'] = wp_filter_nohtml_kses($options['dezi4w_dezi_update_path']);  
-  $options['dezi4w_index_pages'] = absint($options['dezi4w_index_pages']);
-  $options['dezi4w_index_posts'] = absint($options['dezi4w_index_posts']);
-  $options['dezi4w_index_comments'] = absint($options['dezi4w_index_comments']); 
-  $options['dezi4w_delete_page'] = absint($options['dezi4w_delete_page']); 
-  $options['dezi4w_delete_post'] = absint($options['dezi4w_delete_post']); 
-  $options['dezi4w_private_page'] = absint($options['dezi4w_private_page']); 
-  $options['dezi4w_private_post'] = absint($options['dezi4w_private_post']);
-  $options['dezi4w_output_info'] = absint($options['dezi4w_output_info']); 
-  $options['dezi4w_output_pager'] = absint($options['dezi4w_output_pager']); 
-  $options['dezi4w_output_facets'] = absint($options['dezi4w_output_facets']);
-  $options['dezi4w_exclude_pages'] = dezi4w_filter_str2list($options['dezi4w_exclude_pages']);
-  $options['dezi4w_num_results'] = absint($options['dezi4w_num_results']);
-  $options['dezi4w_cat_as_taxo'] = absint($options['dezi4w_cat_as_taxo']);
-  $options['dezi4w_max_display_tags'] = absint($options['dezi4w_max_display_tags']);
-  $options['dezi4w_facet_on_categories'] = absint($options['dezi4w_facet_on_categories']);
-  $options['dezi4w_facet_on_tags'] = absint($options['dezi4w_facet_on_tags'] );
-  $options['dezi4w_facet_on_author'] = absint($options['dezi4w_facet_on_author']);
-  $options['dezi4w_facet_on_type'] = absint($options['dezi4w_facet_on_type']);
-  $options['dezi4w_index_all_sites'] = absint($options['dezi4w_index_all_sites']);
-  $options['dezi4w_enable_dym'] = absint($options['dezi4w_enable_dym'] );
-  $options['dezi4w_connect_type'] = wp_filter_nohtml_kses($options['dezi4w_connect_type']);
-  $options['dezi4w_index_custom_fields'] = dezi4w_filter_str2list($options['dezi4w_index_custom_fields']);
-  $options['dezi4w_facet_on_custom_fields'] = dezi4w_filter_str2list($options['dezi4w_facet_on_custom_fields']);    
-  return $options;
+    $options['dezi4w_dezi_host'] = wp_filter_nohtml_kses($options['dezi4w_dezi_host']);
+    $options['dezi4w_dezi_port'] = absint($options['dezi4w_dezi_port']);
+    $options['dezi4w_dezi_path'] = wp_filter_nohtml_kses($options['dezi4w_dezi_path']);
+    $options['dezi4w_dezi_update_host'] = wp_filter_nohtml_kses($options['dezi4w_dezi_update_host']);
+    $options['dezi4w_dezi_update_port'] = absint($options['dezi4w_dezi_update_port']);
+    $options['dezi4w_dezi_update_path'] = wp_filter_nohtml_kses($options['dezi4w_dezi_update_path']);
+    $options['dezi4w_index_pages'] = absint($options['dezi4w_index_pages']);
+    $options['dezi4w_index_posts'] = absint($options['dezi4w_index_posts']);
+    $options['dezi4w_index_comments'] = absint($options['dezi4w_index_comments']);
+    $options['dezi4w_delete_page'] = absint($options['dezi4w_delete_page']);
+    $options['dezi4w_delete_post'] = absint($options['dezi4w_delete_post']);
+    $options['dezi4w_private_page'] = absint($options['dezi4w_private_page']);
+    $options['dezi4w_private_post'] = absint($options['dezi4w_private_post']);
+    $options['dezi4w_output_info'] = absint($options['dezi4w_output_info']);
+    $options['dezi4w_output_pager'] = absint($options['dezi4w_output_pager']);
+    $options['dezi4w_output_facets'] = absint($options['dezi4w_output_facets']);
+    $options['dezi4w_exclude_pages'] = dezi4w_filter_str2list($options['dezi4w_exclude_pages']);
+    $options['dezi4w_num_results'] = absint($options['dezi4w_num_results']);
+    $options['dezi4w_cat_as_taxo'] = absint($options['dezi4w_cat_as_taxo']);
+    $options['dezi4w_max_display_tags'] = absint($options['dezi4w_max_display_tags']);
+    $options['dezi4w_facet_on_categories'] = absint($options['dezi4w_facet_on_categories']);
+    $options['dezi4w_facet_on_tags'] = absint($options['dezi4w_facet_on_tags'] );
+    $options['dezi4w_facet_on_author'] = absint($options['dezi4w_facet_on_author']);
+    $options['dezi4w_facet_on_type'] = absint($options['dezi4w_facet_on_type']);
+    $options['dezi4w_index_all_sites'] = absint($options['dezi4w_index_all_sites']);
+    $options['dezi4w_enable_dym'] = absint($options['dezi4w_enable_dym'] );
+    $options['dezi4w_connect_type'] = wp_filter_nohtml_kses($options['dezi4w_connect_type']);
+    $options['dezi4w_index_custom_fields'] = dezi4w_filter_str2list($options['dezi4w_index_custom_fields']);
+    $options['dezi4w_facet_on_custom_fields'] = dezi4w_filter_str2list($options['dezi4w_facet_on_custom_fields']);
+    return $options;
 }
 
+
+/**
+ *
+ *
+ * @param unknown $input
+ * @return unknown
+ */
 function dezi4w_filter_str2list_numeric($input) {
     $final = array();
     if ($input != "") {
-        foreach( split(',', $input) as $val ) {
+        foreach ( split(',', $input) as $val ) {
             $val = trim($val);
             if ( is_numeric($val) ) {
                 $final[] = $val;
@@ -1122,10 +1335,17 @@ function dezi4w_filter_str2list_numeric($input) {
     return $final;
 }
 
+
+/**
+ *
+ *
+ * @param unknown $input
+ * @return unknown
+ */
 function dezi4w_filter_str2list($input) {
     $final = array();
     if ($input != "") {
-        foreach( split(',', $input) as $val ) {
+        foreach ( split(',', $input) as $val ) {
             $final[] = trim($val);
         }
     }
@@ -1133,22 +1353,33 @@ function dezi4w_filter_str2list($input) {
     return $final;
 }
 
+
+/**
+ *
+ *
+ * @param unknown $input
+ * @return unknown
+ */
 function dezi4w_filter_list2str($input) {
-	if (!is_array($input)) {
-		return "";
-	}
-	
+    if (!is_array($input)) {
+        return "";
+    }
+
     $outval = implode(',', $input);
     if (!$outval) {
-        $outval = ""; 
+        $outval = "";
     }
-    
+
     return $outval;
 }
 
+
+/**
+ *
+ */
 function dezi4w_add_pages() {
     $addpage = FALSE;
-    
+
     if (is_multisite() && is_site_admin()) {
         $plugin_dezi4w_settings = dezi4w_get_option();
         $indexall = $plugin_dezi4w_settings['dezi4w_index_all_sites'];
@@ -1156,47 +1387,55 @@ function dezi4w_add_pages() {
             $addpage = TRUE;
         }
     } else if (!is_multisite() && is_admin()) {
-        $addpage = TRUE;
-    }
-    
+            $addpage = TRUE;
+        }
+
     if ($addpage) {
         add_options_page('Solr Options', 'Solr Options', 8, __FILE__, 'dezi4w_options_page');
     }
 }
 
+
+/**
+ *
+ */
 function dezi4w_options_page() {
-    if ( file_exists ( dirname(__FILE__) . '/dezi-options-page.php' )) {
-        include( dirname(__FILE__) . '/dezi-options-page.php' );
+    if ( file_exists( dirname(__FILE__) . '/dezi-options-page.php' )) {
+        include dirname(__FILE__) . '/dezi-options-page.php';
     } else {
         _e("<p>Couldn't locate the options page.</p>", 'dezi4wp');
     }
 }
 
+
+/**
+ *
+ */
 function dezi4w_admin_head() {
-    // include our default css 
+    // include our default css
     if (file_exists(dirname(__FILE__) . '/template/search.css')) {
         printf(__("<link rel=\"stylesheet\" href=\"%s\" type=\"text/css\" media=\"screen\" />\n"), plugins_url('/template/search.css', __FILE__));
     }
 ?>
 <script type="text/javascript">
     var $j = jQuery.noConflict();
-    
+
     function switch1() {
         if ($j('#deziconnect_single').is(':checked')) {
             $j('#dezi_admin_tab2').css('display', 'block');
-            $j('#dezi_admin_tab2_btn').addClass('dezi_admin_on');         
+            $j('#dezi_admin_tab2_btn').addClass('dezi_admin_on');
             $j('#dezi_admin_tab3').css('display', 'none');
-            $j('#dezi_admin_tab3_btn').removeClass('dezi_admin_on');            
+            $j('#dezi_admin_tab3_btn').removeClass('dezi_admin_on');
         }
         if ($j('#deziconnect_separated').is(':checked')) {
             $j('#dezi_admin_tab2').css('display', 'none');
-            $j('#dezi_admin_tab2_btn').removeClass('dezi_admin_on');  
+            $j('#dezi_admin_tab2_btn').removeClass('dezi_admin_on');
             $j('#dezi_admin_tab3').css('display', 'block');
-            $j('#dezi_admin_tab3_btn').addClass('dezi_admin_on');                   
-        }        
+            $j('#dezi_admin_tab3_btn').addClass('dezi_admin_on');
+        }
     }
- 
-    
+
+
     function doLoad($type, $prev) {
         if ($prev == null) {
             $j.post("options-general.php?page=dezi-for-wordpress/dezi-for-wordpress.php", {method: "load", type: $type}, handleResults, "json");
@@ -1204,7 +1443,7 @@ function dezi4w_admin_head() {
             $j.post("options-general.php?page=dezi-for-wordpress/dezi-for-wordpress.php", {method: "load", type: $type, prev: $prev}, handleResults, "json");
         }
     }
-    
+
     function handleResults(data) {
         $j('#percentspan').text(data.percent + "%");
         if (!data.end) {
@@ -1214,7 +1453,7 @@ function dezi4w_admin_head() {
             enableAll();
         }
     }
-    
+
     function disableAll() {
         $j("input[name^='dezi4w_content_load']").attr('disabled','disabled');
         $j('[name=dezi4w_deleteall]').attr('disabled','disabled');
@@ -1223,7 +1462,7 @@ function dezi4w_admin_head() {
         $j('[name=dezi4w_ping]').attr('disabled','disabled');
         $j('#settingsbutton').attr('disabled','disabled');
     }
-    
+
     function enableAll() {
         $j("input[name^='dezi4w_content_load']").removeAttr('disabled');
         $j('[name=dezi4w_deleteall]').removeAttr('disabled');
@@ -1232,12 +1471,12 @@ function dezi4w_admin_head() {
         $j('[name=dezi4w_ping]').removeAttr('disabled');
         $j('#settingsbutton').removeAttr('disabled');
     }
-    
+
     $percentspan = '<span style="font-size:1.2em;font-weight:bold;margin:20px;padding:20px" id="percentspan">0%</span>';
-    
+
     $j(document).ready(function() {
        switch1();
-       $j("input[name^='dezi4w_content_load']").click(function(event){ 
+       $j("input[name^='dezi4w_content_load']").click(function(event){
           event.preventDefault();
           var regex = /\b[a-z]+\b/;
           var match = regex.exec(this.name);
@@ -1247,17 +1486,25 @@ function dezi4w_admin_head() {
           doLoad(post_type, null);
         });
      });
-    
+
 </script> <?php
 }
 
+
+/**
+ *
+ */
 function dezi4w_default_head() {
-    // include our default css 
+    // include our default css
     if (file_exists(dirname(__FILE__) . '/template/search.css')) {
         printf(__("<link rel=\"stylesheet\" href=\"%s\" type=\"text/css\" media=\"screen\" />\n"), plugins_url('/template/search.css', __FILE__));
     }
 }
 
+
+/**
+ *
+ */
 function dezi4w_autosuggest_head() {
     if (file_exists(dirname(__FILE__) . '/template/autocomplete.css')) {
         printf(__("<link rel=\"stylesheet\" href=\"%s\" type=\"text/css\" media=\"screen\" />\n"), plugins_url('/template/autocomplete.css', __FILE__));
@@ -1272,6 +1519,10 @@ function dezi4w_autosuggest_head() {
 <?php
 }
 
+
+/**
+ *
+ */
 function dezi4w_template_redirect() {
     wp_enqueue_script('suggest');
 
@@ -1283,7 +1534,7 @@ function dezi4w_template_redirect() {
     if ( ($search || $autocomplete) == FALSE ) {
         return;
     }
-    
+
     if ($autocomplete) {
         $q = stripslashes($_GET['q']);
         $limit = $_GET['limit'];
@@ -1291,44 +1542,60 @@ function dezi4w_template_redirect() {
         dezi4w_autocomplete($q, $limit);
         exit;
     }
-    
-	// If there is a template file then we use it
+
+    // If there is a template file then we use it
     if (locate_template( array( 'dezi4w_search.php' ), FALSE, TRUE)) {
         // use theme file
         locate_template( array( 'dezi4w_search.php' ), TRUE, TRUE);
     } else if (file_exists(dirname(__FILE__) . '/template/dezi4w_search.php')) {
-        // use plugin supplied file
-        add_action('wp_head', 'dezi4w_default_head');
-        include_once(dirname(__FILE__) . '/template/dezi4w_search.php');
-    } else {
+            // use plugin supplied file
+            add_action('wp_head', 'dezi4w_default_head');
+            include_once dirname(__FILE__) . '/template/dezi4w_search.php';
+        } else {
         // no template files found, just continue on like normal
         // this should get to the normal WordPress search results
         return;
     }
-    
+
     exit;
 }
 
+
+/**
+ *
+ */
 function dezi4w_mlt_widget() {
     register_widget('dezi4w_MLTWidget');
 }
 
+
 class dezi4w_MLTWidget extends WP_Widget {
 
+
+    /**
+     *
+     */
     function dezi4w_MLTWidget() {
         $widget_ops = array('classname' => 'widget_dezi4w_mlt', 'description' => __( "Displays a list of pages similar to the page being viewed") );
         $this->WP_Widget('mlt', __('Similar'), $widget_ops);
     }
 
+
+    /**
+     *
+     *
+     * @param unknown $args
+     * @param unknown $instance
+     */
     function widget( $args, $instance ) {
-        
+
         extract($args);
         $title = apply_filters('widget_title', empty($instance['title']) ? __('Similar') : $instance['title']);
         $count = empty($instance['count']) ? 5 : $instance['count'];
         if (!is_numeric($count)) {
             $count = 5;
         }
-        
+
         $showauthor = $instance['showauthor'];
 
         $dezi = dezi4w_get_dezi();
@@ -1337,7 +1604,7 @@ class dezi4w_MLTWidget extends WP_Widget {
         if ((!is_single() && !is_page()) || !$dezi) {
             return;
         }
-        
+
         $params = array();
         $qry = 'permalink:' . $dezi->escape(get_permalink());
         $params['fl'] = 'title,permalink,author';
@@ -1346,19 +1613,19 @@ class dezi4w_MLTWidget extends WP_Widget {
         $params['mlt.fl'] = 'title,content';
 
         $response = $dezi->search($qry, 0, 1, $params);
-        if ( ! $response->getHttpStatus() == 200 ) { 
+        if ( ! $response->getHttpStatus() == 200 ) {
             return;
         }
-    
+
         echo $before_widget;
         if ( $title )
             echo $before_title . $title . $after_title;
-        
+
         $mltresults = $response->moreLikeThis;
         foreach ($mltresults as $mltresult) {
             $docs = $mltresult->docs;
             echo "<ul>";
-            foreach($docs as $doc) {
+            foreach ($docs as $doc) {
                 if ($showauthor) {
                     $author = " by {$doc->author}";
                 }
@@ -1366,10 +1633,18 @@ class dezi4w_MLTWidget extends WP_Widget {
             }
             echo "</ul>";
         }
-        
+
         echo $after_widget;
     }
 
+
+    /**
+     *
+     *
+     * @param unknown $new_instance
+     * @param unknown $old_instance
+     * @return unknown
+     */
     function update( $new_instance, $old_instance ) {
         $instance = $old_instance;
         $new_instance = wp_parse_args( (array) $new_instance, array( 'title' => '', 'count' => 5, 'showauthor' => 0) );
@@ -1377,10 +1652,16 @@ class dezi4w_MLTWidget extends WP_Widget {
         $cnt = strip_tags($new_instance['count']);
         $instance['count'] = is_numeric($cnt) ? $cnt : 5;
         $instance['showauthor'] = $new_instance['showauthor'] ? 1 : 0;
-        
+
         return $instance;
     }
 
+
+    /**
+     *
+     *
+     * @param unknown $instance
+     */
     function form( $instance ) {
         $instance = wp_parse_args( (array) $instance, array( 'title' => '', 'count' => 5, 'showauthor' => 0) );
         $title = strip_tags($instance['title']);
@@ -1401,8 +1682,17 @@ class dezi4w_MLTWidget extends WP_Widget {
             </p>
 <?php
     }
+
+
 }
 
+
+/**
+ *
+ *
+ * @param unknown $q
+ * @param unknown $limit
+ */
 function dezi4w_autocomplete($q, $limit) {
     $dezi = dezi4w_get_dezi();
     $response = NULL;
@@ -1410,7 +1700,7 @@ function dezi4w_autocomplete($q, $limit) {
     if (!$dezi) {
         return;
     }
-    
+
     $params = array();
     $params['terms'] = 'true';
     $params['terms.fl'] = 'spell';
@@ -1421,65 +1711,77 @@ function dezi4w_autocomplete($q, $limit) {
     $params['qt'] = '/terms';
 
     $response = $dezi->search($q, 0, $limit, $params);
-    if ( ! $response->getHttpStatus() == 200 ) { 
+    if ( ! $response->getHttpStatus() == 200 ) {
         return;
     }
-    
+
     $terms = get_object_vars($response->terms->spell);
-    foreach($terms as $term => $count) {
+    foreach ($terms as $term => $count) {
         printf("%s\n", $term);
     }
 }
 
-// copies config settings from the main blog
-// to all of the other blogs
+
+/**
+ * copies config settings from the main blog
+ * to all of the other blogs
+ */
 function dezi4w_copy_config_to_all_blogs() {
-  global $wpdb;
+    global $wpdb;
 
-  $blogs = $wpdb->get_results("SELECT blog_id FROM $wpdb->blogs WHERE spam = 0 AND deleted = 0");
+    $blogs = $wpdb->get_results("SELECT blog_id FROM $wpdb->blogs WHERE spam = 0 AND deleted = 0");
 
-  $plugin_dezi4w_settings = dezi4w_get_option();
-  foreach($blogs as $blog) {
-    switch_to_blog($blog->blog_id);
+    $plugin_dezi4w_settings = dezi4w_get_option();
+    foreach ($blogs as $blog) {
+        switch_to_blog($blog->blog_id);
+        wp_cache_flush();
+        syslog(LOG_ERR, "pushing config to {$blog->blog_id}");
+        dezi4w_update_option($plugin_dezi4w_settings);
+    }
+
     wp_cache_flush();
-    syslog(LOG_ERR,"pushing config to {$blog->blog_id}");
-    dezi4w_update_option($plugin_dezi4w_settings);
-  }
-
-  wp_cache_flush();
-  restore_current_blog();
+    restore_current_blog();
 }
 
+
+/**
+ *
+ *
+ * @param unknown $blogid
+ */
 function dezi4w_apply_config_to_blog($blogid) {
-  syslog(LOG_ERR,"applying config to blog with id $blogid");
-  if (!is_multisite())
-    return;
+    syslog(LOG_ERR, "applying config to blog with id $blogid");
+    if (!is_multisite())
+        return;
 
-  wp_cache_flush();
-  $plugin_dezi4w_settings = dezi4w_get_option();
-  switch_to_blog($blogid);
-  wp_cache_flush();
-  dezi4w_update_option($plugin_dezi4w_settings);
-  restore_current_blog();
-  wp_cache_flush();
+    wp_cache_flush();
+    $plugin_dezi4w_settings = dezi4w_get_option();
+    switch_to_blog($blogid);
+    wp_cache_flush();
+    dezi4w_update_option($plugin_dezi4w_settings);
+    restore_current_blog();
+    wp_cache_flush();
 }
+
 
 /**
  * Retrieve a list of post types that exists
+ *
  * @return array
  */
 function dezi4w_get_all_post_types() {
-  global $wpdb;
-  //remove the defualt attachment/revision and menu from the returned types.
-  $query = $wpdb->get_results("SELECT DISTINCT(post_type) FROM $wpdb->posts WHERE post_type NOT IN('attachment', 'revision', 'nav_menu_item') ORDER BY post_type");
-  if ($query) {
-    $types = array();
-    foreach ( $query as $type ) {
-      $types[] = $type->post_type;
-    }       
-    return $types;
-  }
+    global $wpdb;
+    //remove the defualt attachment/revision and menu from the returned types.
+    $query = $wpdb->get_results("SELECT DISTINCT(post_type) FROM $wpdb->posts WHERE post_type NOT IN('attachment', 'revision', 'nav_menu_item') ORDER BY post_type");
+    if ($query) {
+        $types = array();
+        foreach ( $query as $type ) {
+            $types[] = $type->post_type;
+        }
+        return $types;
+    }
 }
+
 
 add_action( 'template_redirect', 'dezi4w_template_redirect', 1 );
 add_action( 'publish_post', 'dezi4w_handle_modified' );
@@ -1503,5 +1805,3 @@ if (is_multisite()) {
     add_action( 'delete_blog', 'dezi4w_handle_delete_blog');
     add_action( 'wpmu_new_blog', 'dezi4w_handle_new_blog');
 }
-
-?>
