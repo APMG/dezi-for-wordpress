@@ -41,7 +41,9 @@ if (version_compare($wp_version, '3.0', '<')) {
     exit ($errmsg);
 }
 
-require_once dirname(__FILE__) . '/Dezi_Client.php';
+$dezi_client_path = realpath(dirname(__FILE__).'/dezi-client/lib');
+set_include_path(get_include_path() . PATH_SEPARATOR . $dezi_client_path);
+require_once 'Dezi_Client.php';
 
 
 /**
@@ -160,9 +162,9 @@ function dezi4w_build_document( $post_info, $domain = NULL, $path = NULL) {
         // check if we need to exclude this document
         if (is_multisite() && in_array($current_blog->domain . $post_info->ID, (array)$exclude_ids)) {
             return NULL;
-        } else if ( !is_multisite() && in_array($post_info->ID, (array)$exclude_ids) ) {
-                return NULL;
-            }
+        } elseif ( !is_multisite() && in_array($post_info->ID, (array)$exclude_ids) ) {
+            return NULL;
+        }
 
         $doc = new Dezi_Doc(array('uri'=>get_permalink( $post_info->ID )));
         $auth_info = get_userdata( $post_info->post_author );
@@ -776,9 +778,9 @@ function dezi4w_search_form() {
 
     if ($sort == 'date') {
         $sortval = __('<option value="score">Score</option><option value="date" selected="selected">Date</option><option value="modified">Last Modified</option>');
-    } else if ($sort == 'modified') {
-            $sortval = __('<option value="score">Score</option><option value="date">Date</option><option value="modified" selected="selected">Last Modified</option>');
-        } else {
+    } elseif ($sort == 'modified') {
+        $sortval = __('<option value="score">Score</option><option value="date">Date</option><option value="modified" selected="selected">Last Modified</option>');
+    } else {
         $sortval = __('<option value="score" selected="selected">Score</option><option value="date">Date</option><option value="modified">Last Modified</option>');
     }
 
@@ -1393,9 +1395,9 @@ function dezi4w_add_pages() {
         if (($indexall && is_main_blog()) || !$indexall) {
             $addpage = TRUE;
         }
-    } else if (!is_multisite() && is_admin()) {
-            $addpage = TRUE;
-        }
+    } elseif (!is_multisite() && is_admin()) {
+        $addpage = TRUE;
+    }
 
     if ($addpage) {
         add_options_page('Dezi Options', 'Dezi Options', 8, __FILE__, 'dezi4w_options_page');
@@ -1554,11 +1556,11 @@ function dezi4w_template_redirect() {
     if (locate_template( array( 'dezi4w_search.php' ), FALSE, TRUE)) {
         // use theme file
         locate_template( array( 'dezi4w_search.php' ), TRUE, TRUE);
-    } else if (file_exists(dirname(__FILE__) . '/template/dezi4w_search.php')) {
-            // use plugin supplied file
-            add_action('wp_head', 'dezi4w_default_head');
-            include_once dirname(__FILE__) . '/template/dezi4w_search.php';
-        } else {
+    } elseif (file_exists(dirname(__FILE__) . '/template/dezi4w_search.php')) {
+        // use plugin supplied file
+        add_action('wp_head', 'dezi4w_default_head');
+        include_once dirname(__FILE__) . '/template/dezi4w_search.php';
+    } else {
         // no template files found, just continue on like normal
         // this should get to the normal WordPress search results
         return;
