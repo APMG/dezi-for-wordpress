@@ -362,7 +362,7 @@ if ($_POST['dezi4w_ping']) {
     </tr>
 </table>
 <hr />
-<?php settings_fields('s4w-options-group'); ?>
+<?php settings_fields('dezi4w-options-group'); ?>
 
 <p class="submit">
 <input type="hidden" name="action" value="update" />

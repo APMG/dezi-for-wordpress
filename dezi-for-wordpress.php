@@ -6,6 +6,7 @@ Description: Indexes, removes, and updates documents in the Dezi search engine.
 Version: 0.1.0
 Author: Peter Karman
 Author URI: http://apmg.github.com/
+License: MIT
 */
 /*
     Copyright (c) 2012 American Public Media Group
@@ -1279,14 +1280,14 @@ function dezi4w_options_init() {
             return;
         }
     }
-    register_setting('s4w-options-group', 'plugin_dezi4w_settings', 'dezi4w_sanitise_options' );
+    register_setting('dezi4w-options-group', 'plugin_dezi4w_settings', 'dezi4w_sanitise_options' );
 }
 
 
 /**
  * Sanitises the options values
  *
- * @param unknown $options array of s4w settings options
+ * @param unknown $options array of dezi4w settings options
  * @return $options sanitised values
  */
 function dezi4w_sanitise_options($options) {
@@ -1485,6 +1486,7 @@ function dezi4w_admin_head() {
     $j(document).ready(function() {
        switch1();
        $j("input[name^='dezi4w_content_load']").click(function(event){
+          console.log('click!');
           event.preventDefault();
           var regex = /\b[a-z]+\b/;
           var match = regex.exec(this.name);
@@ -1801,7 +1803,7 @@ add_action( 'admin_menu', 'dezi4w_add_pages');
 add_action( 'admin_init', 'dezi4w_options_init');
 add_action( 'widgets_init', 'dezi4w_mlt_widget');
 add_action( 'wp_head', 'dezi4w_autosuggest_head');
-add_action( 'admin_menu', 'dezi4w_admin_head');
+add_action( 'admin_head', 'dezi4w_admin_head');
 
 if (is_multisite()) {
     add_action( 'deactivate_blog', 'dezi4w_handle_deactivate_blog');
