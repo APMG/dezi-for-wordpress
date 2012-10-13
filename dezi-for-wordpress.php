@@ -6,7 +6,6 @@ Description: Indexes, removes, and updates documents in the Dezi search engine.
 Version: 0.1.0
 Author: Peter Karman
 Author URI: http://apmg.github.com/
-License: MIT
 */
 /*
     Copyright (c) 2012 American Public Media Group
@@ -108,7 +107,7 @@ function dezi4w_get_dezi($server_id = NULL) {
     $pw   = $plugin_dezi4w_settings['dezi4w_server']['info'][$server_id]['password'];
     // double check everything has been set
     if ( ! ($host and $port and $path) ) {
-        syslog(LOG_ERR, "host, port or path are empty, host:$host, port:$port, path:$path");
+        error_log("host, port or path are empty, host:$host, port:$port, path:$path");
         return NULL;
     }
 
@@ -285,7 +284,7 @@ function dezi4w_build_document( $post_info, $domain = NULL, $path = NULL) {
         // this will fire during blog sign up on multisite, not sure why
         _e('Post Information is NULL', 'dezi4wp');
     }
-    syslog(LOG_ERR, "built document for $blog_id - $domain$path with title " .  $post_info->post_title .
+    error_log("built document for $blog_id - $domain$path with title " .  $post_info->post_title .
         " and status of " . $post_info->post_status);
     return $doc;
 }
@@ -317,14 +316,14 @@ function dezi4w_post( $documents, $commit = TRUE, $optimize = FALSE) {
         if ( ! $dezi == NULL ) {
 
             if ($documents) {
-                syslog(LOG_ERR, "posting " . count($documents) . " documents for blog:" . get_bloginfo('wpurl'));
+                error_log("posting " . count($documents) . " documents for blog:" . get_bloginfo('wpurl'));
                 foreach ($documents as $doc) {
                     $dezi->index($doc);
                 }
             }
 
             if ($commit) {
-                syslog(LOG_ERR, "telling Dezi to commit");
+                error_log("telling Dezi to commit");
                 $dezi->commit();
             }
 
@@ -333,10 +332,10 @@ function dezi4w_post( $documents, $commit = TRUE, $optimize = FALSE) {
             }
         }
         else {
-            syslog(LOG_ERR, "failed to get a dezi instance created");
+            error_log("failed to get a dezi instance created");
         }
     } catch ( Exception $e ) {
-        syslog(LOG_ERR, "ERROR: " . $e->getMessage());
+        error_log("ERROR: " . $e->getMessage());
         //echo $e->getMessage();
     }
 }
@@ -352,7 +351,7 @@ function dezi4w_optimize() {
             //$dezi->optimize(); // TODO
         }
     } catch ( Exception $e ) {
-        syslog(LOG_ERR, $e->getMessage());
+        error_log($e->getMessage());
     }
 }
 
@@ -366,12 +365,12 @@ function dezi4w_delete( $doc_id ) {
     try {
         $dezi = dezi4w_get_dezi();
         if ( ! $dezi == NULL ) {
-            syslog(LOG_ERR, "dezi->delete doc_id=$doc_id"); // TODO
+            error_log("dezi->delete doc_id=$doc_id"); // TODO
             //$dezi->deleteById( $doc_id );
             //$dezi->commit();
         }
     } catch ( Exception $e ) {
-        syslog(LOG_ERR, $e->getMessage());
+        error_log($e->getMessage());
     }
 }
 
@@ -383,7 +382,7 @@ function dezi4w_delete_all() {
     try {
         $dezi = dezi4w_get_dezi();
         if ( ! $dezi == NULL ) {
-            syslog(LOG_ERR, "dezi->delete_all still TODO");
+            error_log("dezi->delete_all still TODO");
             //$dezi->deleteByQuery( '*:*' );
             //$dezi->commit();
         }
@@ -402,7 +401,7 @@ function dezi4w_delete_blog($blogid) {
     try {
         $dezi = dezi4w_get_dezi();
         if ( ! $dezi == NULL ) {
-            syslog(LOG_ERR, "dezi->delete blogid:$blogid still TODO");
+            error_log("dezi->delete blogid:$blogid still TODO");
             //$dezi->deleteByQuery( "blogid:{$blogid}" );
             //$dezi->commit();
         }
@@ -523,7 +522,7 @@ function dezi4w_handle_status_change( $post_id, $post_info = null ) {
 function dezi4w_handle_delete( $post_id ) {
     global $current_blog;
     $post_info = get_post( $post_id );
-    syslog(LOG_ERR, "deleting post titled '" . $post_info->post_title . "' for " . $current_blog->domain . $current_blog->path);
+    error_log("deleting post titled '" . $post_info->post_title . "' for " . $current_blog->domain . $current_blog->path);
     $plugin_dezi4w_settings = dezi4w_get_option();
     $delete_page = $plugin_dezi4w_settings['dezi4w_delete_page'];
     $delete_post = $plugin_dezi4w_settings['dezi4w_delete_post'];
@@ -656,20 +655,20 @@ function dezi4w_load_all_posts($prev, $type = 'all') {
     if ($plugin_dezi4w_settings['dezi4w_index_all_sites']) {
 
         // there is potential for this to run for an extended period of time, depending on the # of blgos
-        syslog(LOG_ERR, "starting batch import, setting max execution time to unlimited");
+        error_log("starting batch import, setting max execution time to unlimited");
         ini_set('memory_limit', '1024M');
         set_time_limit(0);
 
         // get a list of blog ids
         $bloglist = $wpdb->get_col("SELECT * FROM {$wpdb->base_prefix}blogs WHERE spam = 0 AND deleted = 0", 0);
-        syslog(LOG_ERR, "pushing posts from " . count($bloglist) . " blogs into Dezi");
+        error_log("pushing posts from " . count($bloglist) . " blogs into Dezi");
         foreach ($bloglist as $bloginfo) {
 
             // for each blog we need to import we get their id
             // and tell wordpress to switch to that blog
             $blog_id = trim($bloginfo);
 
-            syslog(LOG_ERR, "switching to blogid $blog_id");
+            error_log("switching to blogid $blog_id");
 
             // attempt to save some memory by flushing wordpress's cache
             wp_cache_flush();
@@ -683,7 +682,7 @@ function dezi4w_load_all_posts($prev, $type = 'all') {
 
             $postids = $wpdb->get_results("SELECT ID FROM {$wpdb->base_prefix}{$bloginfo}_posts WHERE post_status = 'publish' $where_and ORDER BY ID;");
             $postcount = count($postids);
-            syslog(LOG_ERR, "building $postcount documents for " . substr(get_bloginfo('wpurl'), 7));
+            error_log("building $postcount documents for " . substr(get_bloginfo('wpurl'), 7));
             for ($idx = 0; $idx < $postcount; $idx++) {
 
                 $postid = $postids[$idx]->ID;
@@ -719,7 +718,7 @@ function dezi4w_load_all_posts($prev, $type = 'all') {
             dezi4w_post(false, true, false);
             $cnt = 0;
             $documents = array();
-            syslog(LOG_ERR, "finished building $postcount documents for " . substr(get_bloginfo('wpurl'), 7));
+            error_log("finished building $postcount documents for " . substr(get_bloginfo('wpurl'), 7));
             wp_cache_flush();
         }
 
@@ -1254,7 +1253,7 @@ function dezi4w_master_query($dezi, $qry, $offset, $count, $fq, $sortby, &$plugi
             }
         }
         catch(Exception $e) {
-            syslog(LOG_ERR, "failed to query dezi for " . print_r($qry, true) . print_r($params, true));
+            error_log("failed to query dezi for " . print_r($qry, true) . print_r($params, true));
             $response = NULL;
         }
     }
@@ -1744,7 +1743,7 @@ function dezi4w_copy_config_to_all_blogs() {
     foreach ($blogs as $blog) {
         switch_to_blog($blog->blog_id);
         wp_cache_flush();
-        syslog(LOG_ERR, "pushing config to {$blog->blog_id}");
+        error_log("pushing config to {$blog->blog_id}");
         dezi4w_update_option($plugin_dezi4w_settings);
     }
 
@@ -1759,7 +1758,7 @@ function dezi4w_copy_config_to_all_blogs() {
  * @param unknown $blogid
  */
 function dezi4w_apply_config_to_blog($blogid) {
-    syslog(LOG_ERR, "applying config to blog with id $blogid");
+    error_log("applying config to blog with id $blogid");
     if (!is_multisite())
         return;
 
@@ -1802,7 +1801,7 @@ add_action( 'admin_menu', 'dezi4w_add_pages');
 add_action( 'admin_init', 'dezi4w_options_init');
 add_action( 'widgets_init', 'dezi4w_mlt_widget');
 add_action( 'wp_head', 'dezi4w_autosuggest_head');
-add_action( 'admin_head', 'dezi4w_admin_head');
+add_action( 'admin_menu', 'dezi4w_admin_head');
 
 if (is_multisite()) {
     add_action( 'deactivate_blog', 'dezi4w_handle_deactivate_blog');
