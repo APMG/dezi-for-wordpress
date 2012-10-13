@@ -31,8 +31,8 @@ $post_types = dezi4w_get_all_post_types();
 if ($dezi4w_settings['dezi4w_dezi_initialized'] != 1) {
   
   $options['dezi4w_index_all_sites'] = 0;
-  $options['dezi4w_server']['info']['single']= array('host'=>'localhost','port'=>5000, 'path'=>'/');
-  $options['dezi4w_server']['info']['master']= array('host'=>'localhost','port'=>5000, 'path'=>'/');
+  $options['dezi4w_server']['info']['single']= array('host'=>'localhost','port'=>5000, 'path'=>'/', 'username'=>'', 'password'=>'');
+  $options['dezi4w_server']['info']['master']= array('host'=>'localhost','port'=>5000, 'path'=>'/', 'username'=>'', 'password'=>'');
   $options['dezi4w_server']['type']['search'] = 'master';
   $options['dezi4w_server']['type']['update'] = 'master';
   
@@ -178,17 +178,17 @@ if ($_POST['dezi4w_ping']) {
     <div id="message" class="updated fade"><p><strong><?php _e('Ping Failed!', 'dezi4wp') ?></strong></p></div>
 <?php
     }
-} else if ($_POST['dezi4w_deleteall']) {
+} elseif ($_POST['dezi4w_deleteall']) {
     dezi4w_delete_all();
 ?>
     <div id="message" class="updated fade"><p><strong><?php _e('All Indexed Pages Deleted!', 'dezi4wp') ?></strong></p></div>
 <?php
-} else if ($_POST['dezi4w_optimize']) {
+} elseif ($_POST['dezi4w_optimize']) {
     dezi4w_optimize();
 ?>
     <div id="message" class="updated fade"><p><strong><?php _e('Index Optimized!', 'dezi4wp') ?></strong></p></div>
 <?php
-} else if ($_POST['dezi4w_init_blogs']) {
+} elseif ($_POST['dezi4w_init_blogs']) {
     dezi4w_copy_config_to_all_blogs();
     ?>
         <div id="message" class="updated fade"><p><strong><?php _e('Dezi for Wordpress Configured for All Blogs!', 'dezi4wp') ?></strong></p></div>
@@ -211,6 +211,10 @@ if ($_POST['dezi4w_ping']) {
 			<p><input type="text" name="settings[dezi4w_server][info][single][port]" value="<?php echo $dezi4w_settings['dezi4w_server']['info']['single']['port']?>" /></p>
 			<label><?php _e('Dezi Path', 'dezi4wp') ?></label>
 			<p><input type="text" name="settings[dezi4w_server][info][single][path]" value="<?php echo $dezi4w_settings['dezi4w_server']['info']['single']['path']?>" /></p>
+                        <label><?php _e('Dezi Username', 'dezi4wp') ?></label>
+                        <p><input type="text" name="settings[dezi4w_server][info][single][username]" value="<?php echo $dezi4w_settings['dezi4w_server']['info']['single']['username']?>" /></p>
+                        <label><?php _e('Dezi Password', 'dezi4wp') ?></label>
+                        <p><input type="password" name="settings[dezi4w_server][info][single][password]" value="<?php echo $dezi4w_settings['dezi4w_server']['info']['single']['password']?>" /></p>
 		</div>
 		<div class="dezi_adminR2" id="dezi_admin_tab3">
 		  <table>
@@ -220,7 +224,7 @@ if ($_POST['dezi4w_ping']) {
   		    //lets provide an extra fields for extra host on the fly by appending an empty array
   		    //this will always give a count of current servers+1
   		    $serv_count = count($dezi4w_settings['dezi4w_server']['info']);
-  		    $dezi4w_settings['dezi4w_server']['info'][$serv_count] = array('host'=>'','port'=>'', 'path'=>'');
+  		    $dezi4w_settings['dezi4w_server']['info'][$serv_count] = array('host'=>'','port'=>'', 'path'=>'', 'username'=>'', 'password'=>'');
   		    foreach ($dezi4w_settings['dezi4w_server']['info'] as $server_id => $server) { 
                       if ($server_id == "single")
                         continue;
@@ -232,11 +236,15 @@ if ($_POST['dezi4w_ping']) {
     		  <p>Update Server: &nbsp;&nbsp;<input name="settings[dezi4w_server][type][update]" type="radio" value="<?php echo $new_id?>" <?php dezi4w_checkConnectOption($dezi4w_settings['dezi4w_server']['type']['update'], $new_id); ?> /></p>
     			<p>Search Server: &nbsp;&nbsp;<input name="settings[dezi4w_server][type][search]" type="radio" value="<?php echo $new_id?>" <?php dezi4w_checkConnectOption($dezi4w_settings['dezi4w_server']['type']['search'], $new_id); ?> /></p>
     		  <label><?php _e('Dezi Host', 'dezi4wp') ?></label>
-    			<p><input type="text" name="settings[dezi4w_server][info][<?php echo $new_id ?>][host]" value="<?php echo $server['host'] ?>" /></p>
+                  <p><input type="text" name="settings[dezi4w_server][info][<?php echo $new_id ?>][host]" value="<?php echo $server['host'] ?>" /></p>
     			<label><?php _e('Dezi Port', 'dezi4wp') ?></label>
     			<p><input type="text" name="settings[dezi4w_server][info][<?php echo $new_id ?>][port]" value="<?php echo $server['port'] ?>" /></p>
     			<label><?php _e('Dezi Path', 'dezi4wp') ?></label>
-    			<p><input type="text" name="settings[dezi4w_server][info][<?php echo $new_id ?>][path]" value="<?php echo $server['path'] ?>" /></p>		  
+    			<p><input type="text" name="settings[dezi4w_server][info][<?php echo $new_id ?>][path]" value="<?php echo $server['path'] ?>" /></p>
+                        <label><?php _e('Dezi Username', 'dezi4wp') ?></label>
+                        <p><input type="text" name="settings[dezi4w_server][info][<?php echo $new_id ?>][username]" value="<?php echo $server['username']?>" /></p>
+                        <label><?php _e('Dezi Password', 'dezi4wp') ?></label>
+                        <p><input type="password" name="settings[dezi4w_server][info][<?php echo $new_id ?>][password]" value="<?php echo $server['password']?>" /></p>
     			</td>
     			<?php 
     			  }
@@ -249,13 +257,13 @@ if ($_POST['dezi4w_ping']) {
 		<li id="dezi_admin_tab1_btn" class="dezi_admin_tab1">
 		</li>
 		<li id="dezi_admin_tab2_btn" class="dezi_admin_tab2">
-			<h4><input id="deziconnect_single" name="settings[dezi4w_connect_type]" type="radio" value="dezi_single" <?php dezi4w_checkConnectOption($dezi4w_settings['dezi4w_connect_type'], 'dezi_single'); ?> onclick="switch1();" />Single Dezi Server</h4>
+			<h4><input id="deziconnect_single" name="settings[dezi4w_connect_type]" type="radio" value="dezi_single" <?php dezi4w_checkConnectOption($dezi4w_settings['dezi4w_connect_type'], 'dezi_single'); ?> onclick="dezi4w_switch1();" />Single Dezi Server</h4>
 			<ol>
 				<li>Download, install and configure your own <a href="http://dezi.org/">Dezi</a> instance</li>
 			</ol>
 		</li>
 		<li id="dezi_admin_tab3_btn" class="dezi_admin_tab3">
-			<h4><input id="deziconnect_separated" name="settings[dezi4w_connect_type]" type="radio" value="dezi_separated" <?php dezi4w_checkConnectOption($dezi4w_settings['dezi4w_connect_type'], 'dezi_separated'); ?> onclick="switch1();" />Separated Dezi Servers</h4>
+			<h4><input id="deziconnect_separated" name="settings[dezi4w_connect_type]" type="radio" value="dezi_separated" <?php dezi4w_checkConnectOption($dezi4w_settings['dezi4w_connect_type'], 'dezi_separated'); ?> onclick="dezi4w_switch1();" />Separated Dezi Servers</h4>
 			<ol>
 				<li>Separate URL's for updates and searches.</li>
 			</ol>

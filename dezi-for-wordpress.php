@@ -113,7 +113,12 @@ function dezi4w_get_dezi($server_id = NULL) {
     }
 
     // create the dezi client object
-    $dezi = new Dezi_Client(array('server'=>"$host/$path:$port", 'username'=>$un, 'password'=>$pw));
+    $construct = array('server'=>"$host/$path:$port");
+    if ($un && $pw) {
+        $construct['username'] = $un;
+        $construct['password'] = $pw;
+    }
+    $dezi = new Dezi_Client($construct);
 
     return $dezi;
 }
@@ -1294,9 +1299,13 @@ function dezi4w_sanitise_options($options) {
     $options['dezi4w_dezi_host'] = wp_filter_nohtml_kses($options['dezi4w_dezi_host']);
     $options['dezi4w_dezi_port'] = absint($options['dezi4w_dezi_port']);
     $options['dezi4w_dezi_path'] = wp_filter_nohtml_kses($options['dezi4w_dezi_path']);
+    $options['dezi4w_dezi_username'] = wp_filter_nohtml_kses($options['dezi4w_dezi_username']);
+    $options['dezi4w_dezi_password'] = wp_filter_nohtml_kses($options['dezi4w_dezi_password']);
     $options['dezi4w_dezi_update_host'] = wp_filter_nohtml_kses($options['dezi4w_dezi_update_host']);
     $options['dezi4w_dezi_update_port'] = absint($options['dezi4w_dezi_update_port']);
     $options['dezi4w_dezi_update_path'] = wp_filter_nohtml_kses($options['dezi4w_dezi_update_path']);
+    $options['dezi4w_dezi_update_username'] = wp_filter_nohtml_kses($options['dezi4w_dezi_update_username']);
+    $options['dezi4w_dezi_update_password'] = wp_filter_nohtml_kses($options['dezi4w_dezi_update_password']);
     $options['dezi4w_index_pages'] = absint($options['dezi4w_index_pages']);
     $options['dezi4w_index_posts'] = absint($options['dezi4w_index_posts']);
     $options['dezi4w_index_comments'] = absint($options['dezi4w_index_comments']);
@@ -1400,7 +1409,10 @@ function dezi4w_add_pages() {
     }
 
     if ($addpage) {
-        add_options_page('Dezi Options', 'Dezi Options', 8, __FILE__, 'dezi4w_options_page');
+        //add_options_page('Dezi Options', 'Dezi Options', 8, __FILE__, 'dezi4w_options_page');
+        $mypage = add_options_page('Dezi Options', 'Dezi Options', 8, __FILE__, 'dezi4w_options_page' );
+        add_action( "admin_print_scripts-$mypage", 'dezi4w_admin_head' );
+
     }
 }
 
@@ -1421,83 +1433,10 @@ function dezi4w_options_page() {
  *
  */
 function dezi4w_admin_head() {
-    // include our default css
-    if (file_exists(dirname(__FILE__) . '/template/search.css')) {
-        printf(__("<link rel=\"stylesheet\" href=\"%s\" type=\"text/css\" media=\"screen\" />\n"), plugins_url('/template/search.css', __FILE__));
-    }
-?>
-<script type="text/javascript">
-    var $j = jQuery.noConflict();
-
-    function switch1() {
-        if ($j('#deziconnect_single').is(':checked')) {
-            $j('#dezi_admin_tab2').css('display', 'block');
-            $j('#dezi_admin_tab2_btn').addClass('dezi_admin_on');
-            $j('#dezi_admin_tab3').css('display', 'none');
-            $j('#dezi_admin_tab3_btn').removeClass('dezi_admin_on');
-        }
-        if ($j('#deziconnect_separated').is(':checked')) {
-            $j('#dezi_admin_tab2').css('display', 'none');
-            $j('#dezi_admin_tab2_btn').removeClass('dezi_admin_on');
-            $j('#dezi_admin_tab3').css('display', 'block');
-            $j('#dezi_admin_tab3_btn').addClass('dezi_admin_on');
-        }
-    }
-
-
-    function doLoad($type, $prev) {
-        if ($prev == null) {
-            $j.post("options-general.php?page=dezi-for-wordpress/dezi-for-wordpress.php", {method: "load", type: $type}, handleResults, "json");
-        } else {
-            $j.post("options-general.php?page=dezi-for-wordpress/dezi-for-wordpress.php", {method: "load", type: $type, prev: $prev}, handleResults, "json");
-        }
-    }
-
-    function handleResults(data) {
-        $j('#percentspan').text(data.percent + "%");
-        if (!data.end) {
-            doLoad(data.type, data.last);
-        } else {
-            $j('#percentspan').remove();
-            enableAll();
-        }
-    }
-
-    function disableAll() {
-        $j("input[name^='dezi4w_content_load']").attr('disabled','disabled');
-        $j('[name=dezi4w_deleteall]').attr('disabled','disabled');
-        $j('[name=dezi4w_init_blogs]').attr('disabled','disabled');
-        $j('[name=dezi4w_optimize]').attr('disabled','disabled');
-        $j('[name=dezi4w_ping]').attr('disabled','disabled');
-        $j('#settingsbutton').attr('disabled','disabled');
-    }
-
-    function enableAll() {
-        $j("input[name^='dezi4w_content_load']").removeAttr('disabled');
-        $j('[name=dezi4w_deleteall]').removeAttr('disabled');
-        $j('[name=dezi4w_init_blogs]').removeAttr('disabled');
-        $j('[name=dezi4w_optimize]').removeAttr('disabled');
-        $j('[name=dezi4w_ping]').removeAttr('disabled');
-        $j('#settingsbutton').removeAttr('disabled');
-    }
-
-    $percentspan = '<span style="font-size:1.2em;font-weight:bold;margin:20px;padding:20px" id="percentspan">0%</span>';
-
-    $j(document).ready(function() {
-       switch1();
-       $j("input[name^='dezi4w_content_load']").click(function(event){
-          console.log('click!');
-          event.preventDefault();
-          var regex = /\b[a-z]+\b/;
-          var match = regex.exec(this.name);
-          var post_type = match[0];
-          $j(this).after($percentspan);
-          disableAll();
-          doLoad(post_type, null);
-        });
-     });
-
-</script> <?php
+    // include our default css and js
+    $plugindir = get_settings('home').'/wp-content/plugins/'.dirname(plugin_basename(__FILE__));
+    wp_enqueue_script('dezi4w', $plugindir . '/template/dezi4w.js');
+    echo "<link rel='stylesheet' href='$plugindir/template/search.css' type='text/css' media='screen' />\n";
 }
 
 
@@ -1506,9 +1445,8 @@ function dezi4w_admin_head() {
  */
 function dezi4w_default_head() {
     // include our default css
-    if (file_exists(dirname(__FILE__) . '/template/search.css')) {
-        printf(__("<link rel=\"stylesheet\" href=\"%s\" type=\"text/css\" media=\"screen\" />\n"), plugins_url('/template/search.css', __FILE__));
-    }
+    $plugindir = get_settings('home').'/wp-content/plugins/'.dirname(plugin_basename(__FILE__));
+    echo "<link rel='stylesheet' href='$plugindir/template/search.css' type='text/css' media='screen' />\n";
 }
 
 
@@ -1803,7 +1741,9 @@ add_action( 'admin_menu', 'dezi4w_add_pages');
 add_action( 'admin_init', 'dezi4w_options_init');
 add_action( 'widgets_init', 'dezi4w_mlt_widget');
 add_action( 'wp_head', 'dezi4w_autosuggest_head');
-add_action( 'admin_head', 'dezi4w_admin_head');
+//$mypage = add_options_page('dezi-for-wordpress', 'dezi-for-wordpress', 9, __FILE__, 'dezi4w_admin_head' );
+//add_action( "admin_print_scripts-$mypage", 'dezi4w_admin_head' );
+//add_action( 'admin_head', 'dezi4w_admin_head');
 
 if (is_multisite()) {
     add_action( 'deactivate_blog', 'dezi4w_handle_deactivate_blog');
