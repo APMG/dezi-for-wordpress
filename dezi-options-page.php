@@ -101,7 +101,7 @@ wp_reset_vars(array('action'));
 # dezi4w_update_option instead of update option.
 # As it stands we have 27 options instead of making 27 insert calls (which is what update_options does)
 # Lets create an array of all our options and save it once.
-if ($_POST['action'] == 'update') {   
+if (isset($_POST['action']) && $_POST['action'] == 'update') {   
   //lets loop through our setting fields $_POST['settings']
   foreach ($dezi4w_settings as $option => $old_value ) {
     $value = $_POST['settings'][$option];
@@ -153,10 +153,13 @@ if ($_POST['action'] == 'update') {
 
 # checks if we need to check the checkbox
 function dezi4w_checkCheckbox( $fieldValue, $option = array(), $field = false) {
-  $option_value = (is_array($option) && $field)? $option[$field] : $option;
-  if( $fieldValue == '1' || $option_value == '1'){
-    echo 'checked="checked"';
-  }
+    $option_value = $option;
+    if (is_array($option) && $field && isset($option[$field])) {
+        $option_value = $option[$field];
+    }
+    if ( $fieldValue == '1' || $option_value == '1') {
+        echo 'checked="checked"';
+    }
 }
 
 function dezi4w_checkConnectOption($optionType, $connectType) {
@@ -395,7 +398,7 @@ if ($_POST['dezi4w_ping']) {
     <?php } ?>
     
     <?php foreach ($post_types as $post_key => $post_type) {
-            if ($dezi4w_settings['dezi4w_content']['index'][$post_type]==1) {
+            if (isset($dezi4w_settings['dezi4w_content']['index'][$post_type]) && $dezi4w_settings['dezi4w_content']['index'][$post_type]==1) {
     ?>
 
       <tr valign="top">

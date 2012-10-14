@@ -98,7 +98,10 @@ function dezi4w_get_dezi($server_id = NULL) {
     // get the connection options
     $plugin_dezi4w_settings = dezi4w_get_option();
     //if the provided server_id does not exist use the default id 'master'
-    if (!$plugin_dezi4w_settings['dezi4w_server']['info'][$server_id]['host']) {
+    //echo '<pre>';
+    //print_r($plugin_dezi4w_settings);
+    //echo '</pre>';
+    if (!isset($plugin_dezi4w_settings['dezi4w_server']['info'][$server_id])) {
         $server_id = $plugin_dezi4w_settings['dezi4w_server']['type']['update'];
     }
     $host = $plugin_dezi4w_settings['dezi4w_server']['info'][$server_id]['host'];
@@ -113,7 +116,12 @@ function dezi4w_get_dezi($server_id = NULL) {
     }
 
     // create the dezi client object
-    $construct = array('server'=>"$host/$path:$port");
+    if ($path == '/') $path = "";
+    $uri = "$host:$port$path";
+    if (!preg_match('/^https?:/', $uri)) {
+        $uri = 'http://'.$uri;
+    }
+    $construct = array('server'=>$uri);
     if ($un && $pw) {
         $construct['username'] = $un;
         $construct['password'] = $pw;
@@ -133,7 +141,7 @@ function dezi4w_get_dezi($server_id = NULL) {
  * @return boolean
  */
 function dezi4w_ping_server($server_id = NULL) {
-    $dezi = dezi4w_get_dezi($server);
+    $dezi = dezi4w_get_dezi($server_id);
     $ping = FALSE;
     // if we want to check if the server is alive, ping it
     if ($dezi->ping()) {
@@ -550,6 +558,20 @@ function dezi4w_handle_delete( $post_id ) {
  */
 function dezi4w_handle_deactivate_blog($blogid) {
     dezi4w_delete_blog($blogid);
+}
+
+function dezi4w_deactivate_plugin() {
+    // option_name=plugin_dezi4w_settings
+    global $wpdb;
+    $table_name = $wpdb->prefix . "options";
+    $sql = "delete from $table_name where option_name='plugin_dezi4w_settings'";
+    $result = $wpdb->query($sql);
+    if ($result === false) {
+        error_log("deactivate clean up failed. db error: " . $wpdb->last_error);
+    }
+    else {
+        error_log("dezi-for-wordpress is deactivated");
+    }
 }
 
 
@@ -1272,8 +1294,10 @@ function dezi4w_master_query($dezi, $qry, $offset, $count, $fq, $sortby, &$plugi
  *
  */
 function dezi4w_options_init() {
-
-    $method = $_POST['method'];
+    $method = "";
+    if (isset($_POST['method'])) {
+        $method = $_POST['method'];
+    }
     if ($method === "load") {
         $type = $_POST['type'];
         $prev = $_POST['prev'];
@@ -1744,6 +1768,7 @@ add_action( 'wp_head', 'dezi4w_autosuggest_head');
 //$mypage = add_options_page('dezi-for-wordpress', 'dezi-for-wordpress', 9, __FILE__, 'dezi4w_admin_head' );
 //add_action( "admin_print_scripts-$mypage", 'dezi4w_admin_head' );
 //add_action( 'admin_head', 'dezi4w_admin_head');
+register_deactivation_hook( __FILE__, 'dezi4w_deactivate_plugin' );
 
 if (is_multisite()) {
     add_action( 'deactivate_blog', 'dezi4w_handle_deactivate_blog');
