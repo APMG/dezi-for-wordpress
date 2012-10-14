@@ -800,7 +800,7 @@ function dezi4w_load_all_posts($prev, $type = 'all') {
 function dezi4w_search_form() {
     $sort = $_GET['sort'];
     $order = $_GET['order'];
-    $server = $_GET['server'];
+    $server = isset($_GET['server']) ? $_GET['server'] : null;
 
 
     if ($sort == 'date') {
@@ -817,6 +817,7 @@ function dezi4w_search_form() {
         $orderval = __('<option value="desc" selected="selected">Descending</option><option value="asc">Ascending</option>');
     }
     //if server id has been defined keep hold of it
+    $serverval = "";
     if ($server) {
         $serverval = '<input name="server" type="hidden" value="'.$server.'" />';
     }
