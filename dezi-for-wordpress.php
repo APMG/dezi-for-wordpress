@@ -337,8 +337,10 @@ function dezi4w_post( $documents, $commit = TRUE, $optimize = FALSE) {
             }
 
             if ($commit) {
-                error_log("telling Dezi to commit");
-                $dezi->commit();
+                //error_log("telling Dezi to commit");
+                if ($dezi->commit_uri) {
+                    $dezi->commit();
+                }
             }
 
             if ($optimize) {
