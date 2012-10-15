@@ -562,6 +562,10 @@ function dezi4w_handle_deactivate_blog($blogid) {
     dezi4w_delete_blog($blogid);
 }
 
+
+/**
+ *
+ */
 function dezi4w_deactivate_plugin() {
     // option_name=plugin_dezi4w_settings
     global $wpdb;
@@ -917,26 +921,13 @@ function dezi4w_search_results() {
     }
 
     if ($qry) {
-        $results = dezi4w_query( $qry, $offset, $count, $fqitms, $sortby, $server);
+        $response = dezi4w_query( $qry, $offset, $count, $fqitms, $sortby, $server );
 
-        if ($results) {
-            $response = $results->response;
-            $header = $results->responseHeader;
-            $teasers = get_object_vars($results->highlighting);
-            $didyoumean = $results->spellcheck->suggestions->collation;
+        if ($response) {
 
             if ($output_info) {
-                $out['hits'] = sprintf(__("%d"), $response->numFound);
-                $out['qtime'] = sprintf(__("%.3f"), $header->QTime/1000);
-
-                if ($didyoumean && !$isdym && $dym_enabled) {
-                    $dymout = array();
-                    $dymout['term'] = htmlspecialchars($didyoumean);
-                    $dymout['link'] = htmlspecialchars(sprintf(__("?s=%s&isdym=1"), urlencode($didyoumean)));
-                    //if server is set add it on the end of the url
-                    $selectedfacet['removelink'] .=$serverval;
-                    $out['dym'] = $dymout.$serverval;
-                }
+                $out['hits']  = sprintf(__("%d"), $response->total);
+                $out['qtime'] = $response->search_time;
             }
 
             if ($output_pager) {
@@ -976,13 +967,13 @@ function dezi4w_search_results() {
 
                 $out['pager'] = $pagerout;
             }
-
+/* TODO
             if ($output_facets) {
                 // handle facets
                 $facetout = array();
 
-                if ($results->facet_counts) {
-                    foreach ($results->facet_counts->facet_fields as $facetfield => $facet) {
+                if ($response->facets) {
+                    foreach ($response->facets as $facet) {
                         if ( ! get_object_vars($facet) ) {
                             continue;
                         }
@@ -1022,11 +1013,11 @@ function dezi4w_search_results() {
                 $facetout['selected'] = $selectedfacets;
                 $out['facets'] = $facetout;
             }
-
+TODO */
             $resultout = array();
 
-            if ($response->numFound != 0) {
-                foreach ( $response->docs as $doc ) {
+            if ($response->total != 0) {
+                foreach ( $response->results as $doc ) {
                     $resultinfo = array();
                     $docid = strval($doc->id);
                     $resultinfo['permalink'] = $doc->permalink;
@@ -1044,6 +1035,7 @@ function dezi4w_search_results() {
 
                     $resultinfo['score'] = $doc->score;
                     $resultinfo['id'] = $docid;
+                    /*
                     $docteaser = $teasers[$docid];
                     if ($docteaser->content) {
                         $resultinfo['teaser'] = sprintf(__("...%s..."), implode("...", $docteaser->content));
@@ -1052,6 +1044,7 @@ function dezi4w_search_results() {
                         $teaser = implode(' ', array_slice($words, 0, 30));
                         $resultinfo['teaser'] = sprintf(__("%s..."), $teaser);
                     }
+                    */
                     $resultout[] = $resultinfo;
                 }
             }
@@ -1215,7 +1208,7 @@ function dezi4w_query( $qry, $offset, $count, $fq, $sortby, $server = NULL) {
  * @return unknown
  */
 function dezi4w_master_query($dezi, $qry, $offset, $count, $fq, $sortby, &$plugin_dezi4w_settings) {
-    die("dezi search not yet implemented");
+
     $response = NULL;
     $facet_fields = array();
     $number_of_tags = $plugin_dezi4w_settings['dezi4w_max_display_tags'];
@@ -1255,32 +1248,17 @@ function dezi4w_master_query($dezi, $qry, $offset, $count, $fq, $sortby, &$plugi
 
     if ( $dezi ) {
         $params = array();
-        $params['defType'] = 'dismax';
-        $params['qf'] = 'tagssrch^5 title^10 categoriessrch^5 content^3.5 comments^1.5'; // TODO : Add "_srch" custom fields ?
-        $params['pf'] = 'title^15 text^10';
-        $params['facet'] = 'true';
-        $params['facet.field'] = $facet_fields;
-        $params['facet.mincount'] = '1';
-        $params['fq'] = $fq;
-        $params['fl'] = '*,score';
-        $params['hl'] = 'on';
-        $params['hl.fl'] = 'content';
-        $params['hl.snippets'] = '3';
-        $params['hl.fragsize'] = '50';
-        $params['sort'] = $sortby;
-        $params['spellcheck.onlyMorePopular'] = 'true';
-        $params['spellcheck.extendedResults'] = 'false';
-        $params['spellcheck.collate'] = 'true';
-        $params['spellcheck.count'] = '1';
-        $params['spellcheck'] = 'true';
-
-        if ($facet_on_tags) {
-            $params['f.tags.facet.limit'] = $number_of_tags;
-        }
+        $params['q'] = $qry;
+        $params['o'] = $offset;
+        $params['p'] = $count;  // page size
+        $params['h'] = 1;       // use highlighting
+        $params['f'] = 1;       // return facets
+        $params['r'] = 1;       // return results
+        $params['s'] = $sortby;
 
         try {
-            $response = $dezi->search($qry, $offset, $count, $params);
-            if ( ! $response->getHttpStatus() == 200 ) {
+            $response = $dezi->search($params);
+            if ( $response === 0 ) {
                 $response = NULL;
             }
         }
