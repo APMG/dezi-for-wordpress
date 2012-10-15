@@ -1213,6 +1213,7 @@ function dezi4w_query( $qry, $offset, $count, $fq, $sortby, $server = NULL) {
  * @return unknown
  */
 function dezi4w_master_query($dezi, $qry, $offset, $count, $fq, $sortby, &$plugin_dezi4w_settings) {
+    die("dezi search not yet implemented");
     $response = NULL;
     $facet_fields = array();
     $number_of_tags = $plugin_dezi4w_settings['dezi4w_max_display_tags'];
