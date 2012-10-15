@@ -179,7 +179,7 @@ function dezi4w_build_document( $post_info, $domain = NULL, $path = NULL) {
             return NULL;
         }
 
-        $doc = new Dezi_Doc(array('uri'=>get_permalink( $post_info->ID )));
+        $doc = new Dezi_Doc(array('uri'=>urlencode(get_permalink( $post_info->ID ))));
         $auth_info = get_userdata( $post_info->post_author );
 
         // wpmu specific info
@@ -218,7 +218,7 @@ function dezi4w_build_document( $post_info, $domain = NULL, $path = NULL) {
             $doc->set_field('comments', $comment_array);
         }
 
-        $doc->set_field( 'title', $post_info->post_title );
+        $doc->set_field( 'swishtitle', $post_info->post_title );
         $doc->set_field( 'body', strip_tags($post_info->post_content) );
 
         // rawcontent strips out characters lower than 0x20
@@ -242,6 +242,7 @@ function dezi4w_build_document( $post_info, $domain = NULL, $path = NULL) {
         $doc->set_field( 'modified', dezi4w_format_date($post_info->post_modified_gmt) );
         $doc->set_field( 'displaydate', $post_info->post_date );
         $doc->set_field( 'displaymodified', $post_info->post_modified );
+        $doc->mtime = strtotime($post_info->post_modified);
 
         $categories = get_the_category($post_info->ID);
         if ( ! $categories == NULL ) {
@@ -337,8 +338,7 @@ function dezi4w_post( $documents, $commit = TRUE, $optimize = FALSE) {
             }
 
             if ($commit) {
-                //error_log("telling Dezi to commit");
-                if ($dezi->commit_uri) {
+                if ($dezi->server_supports_transactions()) {
                     $dezi->commit();
                 }
             }
@@ -932,7 +932,7 @@ function dezi4w_search_results() {
 
             if ($output_pager) {
                 // calculate the number of pages
-                $numpages = ceil($response->numFound / $count);
+                $numpages = ceil($response->total / $count);
                 $currentpage = ceil($offset / $count) + 1;
                 $pagerout = array();
 
@@ -1017,20 +1017,22 @@ TODO */
             $resultout = array();
 
             if ($response->total != 0) {
+                //echo '<pre>';
                 foreach ( $response->results as $doc ) {
+                    //print_r($doc);
                     $resultinfo = array();
-                    $docid = strval($doc->id);
-                    $resultinfo['permalink'] = $doc->permalink;
+                    $docid = strval(array_shift($doc->get_field('id')));
+                    $resultinfo['permalink'] = array_shift($doc->get_field('permalink'));
                     $resultinfo['title'] = $doc->title;
-                    $resultinfo['author'] = $doc->author;
-                    $resultinfo['authorlink'] = htmlspecialchars($doc->author_s);
-                    $resultinfo['numcomments'] = $doc->numcomments;
-                    $resultinfo['date'] = $doc->displaydate;
+                    $resultinfo['author'] = array_shift($doc->get_field('author'));
+                    $resultinfo['authorlink'] = htmlspecialchars(array_shift($doc->get_field('author_s')));
+                    $resultinfo['numcomments'] = array_shift($doc->get_field('numcomments'));
+                    $resultinfo['date'] = array_shift($doc->get_field('displaydate'));
 
                     if ($doc->numcomments === 0) {
-                        $resultinfo['comment_link'] = $doc->permalink . "#respond";
+                        $resultinfo['comment_link'] = array_shift($doc->get_field('permalink')) . "#respond";
                     } else {
-                        $resultinfo['comment_link'] = $doc->permalink . "#comments";
+                        $resultinfo['comment_link'] = array_shift($doc->get_field('permalink')) . "#comments";
                     }
 
                     $resultinfo['score'] = $doc->score;
@@ -1047,6 +1049,7 @@ TODO */
                     */
                     $resultout[] = $resultinfo;
                 }
+                //echo '</pre>';
             }
             $out['results'] = $resultout;
         }
@@ -1267,7 +1270,9 @@ function dezi4w_master_query($dezi, $qry, $offset, $count, $fq, $sortby, &$plugi
             $response = NULL;
         }
     }
-
+    //echo '<pre>';
+    //print_r($dezi->last_response);
+    //echo '</pre>';
     return $response;
 }
 
