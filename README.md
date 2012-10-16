@@ -37,13 +37,9 @@ The plugin is distributed with a Dezi config file you can use at *dezi-config.pl
  2. Activate the plugin through the 'Plugins' menu in WordPress
  3. Configure the plugin with the hostname, port, and URI path to your Dezi installation.
  4. Load all your posts and/or pages via the "Load All Posts" button in the settings page.
-
-## Custom Theme Integration ##
-
- 1. Create a new theme file called "dezi4w_search.php".
- 2. Insert your markup, use template methods dezi4w_search_form() and dezi4w_search_results() to insert the search box and results respectively.
- 3. Add result styling to your theme css file, see *dezi-for-wordpress/template/search.css* for an example.
- 4. You can use the search widget in your sidebar for search, or use a custom search box that submits the query in the parameter "s".
+ 5. Copy *dezi-for-wordpress/template/dezi4w.php* to your theme directory as *dezi4w_search.php*.
+ 6. Add result styling to your theme css file, see *dezi-for-wordpress/template/search.css* for an example.
+ 7. You can use the search widget in your sidebar for search, or use a custom search box that submits the query in the parameter "s".
 
 
 
