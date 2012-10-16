@@ -2,6 +2,10 @@
 /*
 Template Name: Search
 */
+
+// includes the example css file
+add_action('wp_head', 'dezi4w_default_head');
+
 ?>
 
 <?php get_header(); ?>
