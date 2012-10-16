@@ -25,11 +25,14 @@ A WordPress plugin that replaces the default WordPress search with Solr.  Featur
  * i18n Support
  * Multi server/core support
 
+## Dezi ##
+
+You can find out more about Dezi at http://dezi.org/.
+
 Note that this plugin requires you to have an instance of Dezi 
 using a schema with the following fields: 
-id, permalink, title, content, numcomments, categories, categoriessrch, tags, tagssrch, author, type, and text.
-The plugin is distributed with a Dezi config file you can use at *dezi-config.pl*.
-
+id, permalink, numcomments, categories, categoriessrch, tags, tagssrch, author, type.
+An example Dezi config file you can use is distributed at *dezi-for-wordpress/dezi-config.pl*.
 
 ## Installation ##
 
@@ -37,7 +40,7 @@ The plugin is distributed with a Dezi config file you can use at *dezi-config.pl
  2. Activate the plugin through the 'Plugins' menu in WordPress
  3. Configure the plugin with the hostname, port, and URI path to your Dezi installation.
  4. Load all your posts and/or pages via the "Load All Posts" button in the settings page.
- 5. Copy *dezi-for-wordpress/template/dezi4w.php* to your theme directory as *dezi4w_search.php*.
+ 5. Copy *dezi-for-wordpress/template/dezi4w_example.php* to your theme directory as *dezi4w_search.php*.
  6. Add result styling to your theme css file, see *dezi-for-wordpress/template/search.css* for an example.
  7. You can use the search widget in your sidebar for search, or use a custom search box that submits the query in the parameter "s".
 
