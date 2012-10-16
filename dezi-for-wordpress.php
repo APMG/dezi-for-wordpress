@@ -840,13 +840,13 @@ function dezi4w_search_form() {
  */
 function dezi4w_search_results() {
     $qry = stripslashes($_GET['s']);
-    $offset = $_GET['offset'];
-    $count = $_GET['count'];
-    $fq = $_GET['fq'];
-    $sort = $_GET['sort'];
-    $order = $_GET['order'];
-    $isdym = $_GET['isdym'];
-    $server = $_GET['server'];
+    $offset = isset($_GET['offset']) ? $_GET['offset'] : 0;
+    $count = isset($_GET['count']) ? $_GET['count'] : 25;
+    $fq = isset($_GET['fq']) ? $_GET['fq'] : null;
+    $sort = isset($_GET['sort']) ? $_GET['sort'] : 'score';
+    $order = isset($_GET['order']) ? $_GET['order'] : 'desc';
+    $isdym = isset($_GET['isdym']) ? $_GET['isdym'] : null;
+    $server = isset($_GET['server']) ? $_GET['server'] : null;
 
     $plugin_dezi4w_settings = dezi4w_get_option();
     $output_info = $plugin_dezi4w_settings['dezi4w_output_info'];
@@ -856,6 +856,7 @@ function dezi4w_search_results() {
     $categoy_as_taxonomy = $plugin_dezi4w_settings['dezi4w_cat_as_taxo'];
     $dym_enabled = $plugin_dezi4w_settings['dezi4w_enable_dym'];
     $out = array();
+    $out['hits'] = "0"; // default
 
     if ( ! $qry ) {
         $qry = '';
@@ -989,8 +990,11 @@ function dezi4w_search_results() {
                                 $taxovals = explode('^^', rtrim($facet_instance['term'], '^^'));
                                 $taxo = dezi4w_gen_taxo_array($taxo, $taxovals);
                             }
-
-                            $facetitms = dezi4w_get_output_taxo($facet, $taxo, '', $fqstr.$serverval, $facetfield);
+                            $fqstr_safe = $fqstr;
+                            if (isset($serverval)) {
+                                $fqstr_safe .= $serverval;
+                            }
+                            $facetitms = dezi4w_get_output_taxo($facet, $taxo, '', $fqstr_safe, $facetfield);
 
                         } 
                         else {
@@ -999,7 +1003,9 @@ function dezi4w_search_results() {
                                 $facetitm['count'] = sprintf(__("%d"), $facet_instance['count']);
                                 $facetitm['link'] = htmlspecialchars(sprintf(__('?s=%s&fq=%s:%s%s', 'dezi4wp'), urlencode($qry), $facetfield, urlencode('"' . $facet_instance['term'] . '"'), $fqstr));
                                 //if server is set add it on the end of the url
-                                $facetitm['link'] .=$serverval;
+                                if (isset($serverval)) {
+                                    $facetitm['link'] .= $serverval;
+                                }
                                 $facetitm['name'] = $facet_instance['term'];
                                 $facetitms[] = $facetitm;
                             }
@@ -1037,6 +1043,7 @@ function dezi4w_search_results() {
 
                     $resultinfo['score'] = $doc->score;
                     $resultinfo['id'] = $docid;
+                    $resultinfo['teaser'] = $doc->summary;
                     /*
                     $docteaser = $teasers[$docid];
                     if ($docteaser->content) {
@@ -1053,8 +1060,6 @@ function dezi4w_search_results() {
             }
             $out['results'] = $resultout;
         }
-    } else {
-        $out['hits'] = "0";
     }
 
     // pager and results count helpers
@@ -1065,6 +1070,9 @@ function dezi4w_search_results() {
     $out['lastresult'] = strval(min($offset + $count, $out['hits']));
     $out['sortby'] = $sortby;
     $out['order'] = $order;
+    if (!isset($serverval)) {
+        $serverval = "";
+    }
     $out['sorting'] = array(
         'scoreasc' => htmlspecialchars(sprintf('?s=%s&fq=%s&sort=score&order=asc%s', urlencode($qry), stripslashes($fq), $serverval)),
         'scoredesc' => htmlspecialchars(sprintf('?s=%s&fq=%s&sort=score&order=desc%s', urlencode($qry), stripslashes($fq), $serverval)),
@@ -1161,12 +1169,15 @@ function dezi4w_get_output_taxo($facet, $taxo, $prefix, $fqstr, $field) {
  */
 function dezi4w_gen_taxo_array($in, $vals) {
     if (count($vals) == 1) {
-        if ( ! $in[$vals[0]]) {
+        if ( ! isset($in[$vals[0]]) ) {
             $in[$vals[0]] = array();
         }
         return $in;
-    } else {
-        $in[$vals[0]] = dezi4w_gen_taxo_array($in[$vals[0]], array_slice($vals, 1));
+    } 
+    else {
+        if (isset($in[$vals[0]])) {
+            $in[$vals[0]] = dezi4w_gen_taxo_array($in[$vals[0]], array_slice($vals, 1));
+        }
         return $in;
     }
 }
@@ -1257,8 +1268,16 @@ function dezi4w_master_query($dezi, $qry, $offset, $count, $fq, $sortby, &$plugi
         $params = array();
         $params['q'] = $qry;
         //error_log("fq=".var_export($fq,true));
-        if (count($fq)) {
-            $params['q'] .= sprintf(" AND (%s)", implode(' AND ', $fq));
+        if ($fq and count($fq)) {
+            $valid_fq = array();
+            foreach ($fq as $str) {
+                if ($str and strlen($str)) {
+                    $valid_fq[] = $str;
+                }
+            }
+            if ($valid_fq) {
+                $params['q'] .= sprintf(" AND (%s)", implode(' AND ', $valid_fq));
+            }
         }
         $params['o'] = $offset;
         $params['p'] = $count;  // page size
