@@ -254,7 +254,7 @@ function dezi4w_build_document( $post_info, $domain = NULL, $path = NULL) {
                     $cat_array[] = $category->cat_name;
                 }
             }
-            $doc->set_field('cateogories', $cat_array);
+            $doc->set_field('categories', $cat_array);
         }
 
         //get all the taxonomy names used by wp
@@ -967,17 +967,16 @@ function dezi4w_search_results() {
 
                 $out['pager'] = $pagerout;
             }
-/* TODO
+
             if ($output_facets) {
                 // handle facets
                 $facetout = array();
 
                 if ($response->facets) {
-                    foreach ($response->facets as $facet) {
-                        if ( ! get_object_vars($facet) ) {
-                            continue;
-                        }
-
+                    foreach ($response->facets as $facetfield => $facet) {
+                        //echo '<pre>';
+                        //print_r($facet);
+                        //echo '</pre>';
                         $facetinfo = array();
                         $facetitms = array();
                         $facetinfo['name'] = ucwords(preg_replace('/_str$/i', '', $facetfield));
@@ -986,21 +985,22 @@ function dezi4w_search_results() {
                         if ($categoy_as_taxonomy && $facetfield == 'categories') {
                             // generate taxonomy and counts
                             $taxo = array();
-                            foreach ($facet as $facetval => $facetcnt) {
-                                $taxovals = explode('^^', rtrim($facetval, '^^'));
+                            foreach ($facet as $facet_instance) {
+                                $taxovals = explode('^^', rtrim($facet_instance['term'], '^^'));
                                 $taxo = dezi4w_gen_taxo_array($taxo, $taxovals);
                             }
 
                             $facetitms = dezi4w_get_output_taxo($facet, $taxo, '', $fqstr.$serverval, $facetfield);
 
-                        } else {
-                            foreach ($facet as $facetval => $facetcnt) {
+                        } 
+                        else {
+                            foreach ($facet as $facet_instance) {
                                 $facetitm = array();
-                                $facetitm['count'] = sprintf(__("%d"), $facetcnt);
-                                $facetitm['link'] = htmlspecialchars(sprintf(__('?s=%s&fq=%s:%s%s', 'dezi4wp'), urlencode($qry), $facetfield, urlencode('"' . $facetval . '"'), $fqstr));
+                                $facetitm['count'] = sprintf(__("%d"), $facet_instance['count']);
+                                $facetitm['link'] = htmlspecialchars(sprintf(__('?s=%s&fq=%s:%s%s', 'dezi4wp'), urlencode($qry), $facetfield, urlencode('"' . $facet_instance['term'] . '"'), $fqstr));
                                 //if server is set add it on the end of the url
                                 $facetitm['link'] .=$serverval;
-                                $facetitm['name'] = $facetval;
+                                $facetitm['name'] = $facet_instance['term'];
                                 $facetitms[] = $facetitm;
                             }
                         }
@@ -1013,7 +1013,7 @@ function dezi4w_search_results() {
                 $facetout['selected'] = $selectedfacets;
                 $out['facets'] = $facetout;
             }
-TODO */
+
             $resultout = array();
 
             if ($response->total != 0) {
@@ -1129,11 +1129,15 @@ function dezi4w_get_output_taxo($facet, $taxo, $prefix, $fqstr, $field) {
         return;
     } else {
         $facetitms = array();
+        // turn the facet inside out to access by term
+        $io_facet = array();
+        foreach ($facet as $f) {
+            $io_facet[$f['term']] = $f['count'];
+        }
         foreach ($taxo as $taxoname => $taxoval) {
             $newprefix = $prefix . $taxoname . '^^';
-            $facetvars = get_object_vars($facet);
             $facetitm = array();
-            $facetitm['count'] = sprintf(__("%d"), $facetvars[$newprefix]);
+            $facetitm['count'] = sprintf(__("%d"), $io_facet[$newprefix]);
             $facetitm['link'] = htmlspecialchars(sprintf(__('?s=%s&fq=%s:%s%s', 'dezi4wp'), $qry, $field,  urlencode('"' . $newprefix . '"'), $fqstr));
             $facetitm['name'] = $taxoname;
             $outitms = dezi4w_get_output_taxo($facet, $taxoval, $newprefix, $fqstr, $field);
@@ -1252,6 +1256,10 @@ function dezi4w_master_query($dezi, $qry, $offset, $count, $fq, $sortby, &$plugi
     if ( $dezi ) {
         $params = array();
         $params['q'] = $qry;
+        //error_log("fq=".var_export($fq,true));
+        if (count($fq)) {
+            $params['q'] .= sprintf(" AND (%s)", implode(' AND ', $fq));
+        }
         $params['o'] = $offset;
         $params['p'] = $count;  // page size
         $params['h'] = 1;       // use highlighting
@@ -1655,6 +1663,10 @@ class dezi4w_MLTWidget extends WP_Widget {
 function dezi4w_autocomplete($q, $limit) {
     $dezi = dezi4w_get_dezi();
     $response = NULL;
+    
+    // TODO dezi needs /terms and spellcheck features
+    error_log("dezi autocomplete not yet implemented");
+    return;
 
     if (!$dezi) {
         return;
@@ -1752,9 +1764,6 @@ add_action( 'admin_menu', 'dezi4w_add_pages');
 add_action( 'admin_init', 'dezi4w_options_init');
 add_action( 'widgets_init', 'dezi4w_mlt_widget');
 add_action( 'wp_head', 'dezi4w_autosuggest_head');
-//$mypage = add_options_page('dezi-for-wordpress', 'dezi-for-wordpress', 9, __FILE__, 'dezi4w_admin_head' );
-//add_action( "admin_print_scripts-$mypage", 'dezi4w_admin_head' );
-//add_action( 'admin_head', 'dezi4w_admin_head');
 register_deactivation_hook( __FILE__, 'dezi4w_deactivate_plugin' );
 
 if (is_multisite()) {

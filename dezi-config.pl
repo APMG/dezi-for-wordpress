@@ -12,9 +12,12 @@
 
         # which facets to calculate, and how many results to consider
         facets => {
-            names       => [qw(  )],  # TODO derive f= param
+            names       => [qw( categories tags author type  )],  # TODO derive f= param
             sample_size => 10_000,
         },
+  
+        # how many seconds should facets be cached? short in dev, set to longer for better performance.
+        cache_ttl => 30,
 
         # result attributes in response
         fields => [
@@ -36,10 +39,6 @@
                 # attributes to store
                 PropertyNames =>
                     'id permalink numcomments categories categoriessrch tags tagssrch author author_s type date modified displaydate displaymodified',
-
-                # auto-vivify new fields based on POSTed docs.
-                # use this if you want ElasticSearch-like effect.
-                UndefinedMetaTags => 'auto',
 
                 # treat unknown mime types as text/plain
                 DefaultContents => 'TXT',

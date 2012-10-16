@@ -357,11 +357,12 @@ if ($_POST['dezi4w_ping']) {
         <td><input type="text" name="settings[dezi4w_facet_on_custom_fields]" value="<?php print( dezi4w_filter_list2str($dezi4w_settings['dezi4w_facet_on_custom_fields'], 'dezi4wp')); ?>" /></td>
     </tr>
 
+    <!--
     <tr valign="top">
         <th scope="row" style="width:200px;"><?php _e('Enable Spellchecking', 'dezi4wp') ?></th>
         <td style="width:10px;float:left;"><input type="checkbox" name="settings[dezi4w_enable_dym]" value="1" <?php echo dezi4w_checkCheckbox($dezi4w_settings['dezi4w_enable_dym']); ?> /></td>
     </tr>
-                   
+    -->           
     <tr valign="top">
         <th scope="row"><?php _e('Number of Results Per Page', 'dezi4wp') ?></th>
         <td><input type="text" name="settings[dezi4w_num_results]" value="<?php _e($dezi4w_settings['dezi4w_num_results'], 'dezi4wp'); ?>" /></td>
