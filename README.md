@@ -45,4 +45,15 @@ An example Dezi config file you can use is distributed at *dezi-for-wordpress/de
  7. You can use the search widget in your sidebar for search, or use a custom search box that submits the query in the parameter "s".
 
 
+## Developers ##
+
+If you are working from a git clone of the dezi-for-wordpress repository, you need to be aware
+that the plugin uses git submodules in order to include the Dezi_Client dependencies. After
+you have cloned dezi-for-wordpress, you need to:
+
+ % git submodule init
+ % git submodule update
+ % cd dezi-client
+ % git submodule init
+ % git submodule update
 
