@@ -996,7 +996,7 @@ function dezi4w_search_results() {
                             }
                             $facetitms = dezi4w_get_output_taxo($facet, $taxo, '', $fqstr_safe, $facetfield);
 
-                        } 
+                        }
                         else {
                             foreach ($facet as $facet_instance) {
                                 $facetitm = array();
@@ -1173,7 +1173,7 @@ function dezi4w_gen_taxo_array($in, $vals) {
             $in[$vals[0]] = array();
         }
         return $in;
-    } 
+    }
     else {
         if (isset($in[$vals[0]])) {
             $in[$vals[0]] = dezi4w_gen_taxo_array($in[$vals[0]], array_slice($vals, 1));
@@ -1575,6 +1575,9 @@ class dezi4w_MLTWidget extends WP_Widget {
      */
     function widget( $args, $instance ) {
 
+        die("TODO dezi widget");
+
+
         extract($args);
         $title = apply_filters('widget_title', empty($instance['title']) ? __('Similar') : $instance['title']);
         $count = empty($instance['count']) ? 5 : $instance['count'];
@@ -1682,32 +1685,29 @@ class dezi4w_MLTWidget extends WP_Widget {
 function dezi4w_autocomplete($q, $limit) {
     $dezi = dezi4w_get_dezi();
     $response = NULL;
-    
-    // TODO dezi needs /terms and spellcheck features
-    error_log("dezi autocomplete not yet implemented");
-    return;
 
     if (!$dezi) {
         return;
     }
 
     $params = array();
-    $params['terms'] = 'true';
-    $params['terms.fl'] = 'spell';
-    $params['terms.lower'] = $q;
-    $params['terms.prefix'] = $q;
-    $params['terms.lower.incl'] = 'false';
-    $params['terms.limit'] = $limit;
-    $params['qt'] = '/terms';
+    $params['c'] = '1'; // just count, no results or facets
+    $params['q'] = $q;
 
-    $response = $dezi->search($q, 0, $limit, $params);
-    if ( ! $response->getHttpStatus() == 200 ) {
+    $response = $dezi->search($params);
+    if ( $response === 0 ) {
         return;
     }
 
-    $terms = get_object_vars($response->terms->spell);
-    foreach ($terms as $term => $count) {
+    $terms = $response->suggestions;
+    //error_log("autocomplete limit=$limit");
+    //error_log(var_export($terms,true));
+    $i = 0;
+    foreach ($terms as $term) {
         printf("%s\n", $term);
+        if (isset($limit) && ++$i > $limit) {
+            break;
+        }
     }
 }
 
