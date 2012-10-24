@@ -30,7 +30,11 @@ my $stemmer = sub {
             sample_size => 10_000,
         },
 
-# how many seconds should facets be cached? short in dev, set to longer for better performance.
+        # will break results html
+        do_not_hilite => { map { $_ => 1 } qw( permalink ) },
+
+        # how many seconds should facets be cached? 
+        # short in dev, set to longer for better performance.
         cache_ttl => 30,
 
         # result attributes in response
