@@ -2,15 +2,15 @@
 
 # english stemmer by default -- do not need this if FuzzyIndexingMode
 # is not set below
-use Lingua::Stem::Snowball;
-my $snowball = Lingua::Stem::Snowball->new(
-    lang     => 'en',
-    encoding => 'UTF-8',
-);
-my $stemmer = sub {
-    my ( $qp, $term ) = @_;
-    return $snowball->stem($term);
-};
+#use Lingua::Stem::Snowball;
+#my $snowball = Lingua::Stem::Snowball->new(
+#    lang     => 'en',
+#    encoding => 'UTF-8',
+#);
+#my $stemmer = sub {
+#    my ( $qp, $term ) = @_;
+#    return $snowball->stem($term);
+#};
 
 {
 
@@ -62,7 +62,7 @@ my $stemmer = sub {
                 DefaultContents => 'TXT',
 
                 # use English snowball stemmer
-                FuzzyIndexingMode => 'Stemming_en1',
+                #FuzzyIndexingMode => 'Stemming_en1',
 
             },
 
@@ -72,6 +72,10 @@ my $stemmer = sub {
         parser_config => {
             query_dialect => 'Lucy',
             stemmer       => $stemmer,
+        },
+
+        suggester_config => {
+            use_regex => 0,
         },
     },
 
