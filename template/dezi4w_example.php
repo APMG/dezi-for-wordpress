@@ -86,7 +86,7 @@ else {
                 </ol>
                 <div class="dezi_sort">Sort by:</div>
             </div>
-        </div><?-- /dezi_results_header -->
+        </div><!-- /dezi_results_header -->
 
         <div class="dezi_results">
 
@@ -110,7 +110,7 @@ else {
             <li onclick="window.location='<?php echo $result['permalink']?>'">
              <h2><a href="<?php echo $result['permalink'] ?>"><?php echo $result['title'] ?></a></h2>
              <p><?php echo $result['teaser'] ?> <a href="<?php echo $result['comment_link'] ?>">(comment match)</a></p>
-             <label> By <a href="<?php echo $result['authorlink'] ?>"><?php echo $result['author']</a> 
+             <label> By <a href="<?php echo $result['authorlink'] ?>"><?php echo $result['author'] ?></a> 
               in <?php echo get_the_category_list( ', ', '', $result['id']) ?> <?php echo date('m/d/Y', strtotime($result['date'])) ?>
               - <a href="<?php echo $result['comment_link'] ?>"><?php echo $result['numcomments'] ?> comments</a>
              </label>
