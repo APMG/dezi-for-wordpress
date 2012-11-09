@@ -1044,6 +1044,14 @@ function dezi4w_search_results() {
                     $resultinfo['score'] = $doc->score;
                     $resultinfo['id'] = $docid;
                     $resultinfo['teaser'] = $doc->summary;
+                    
+                    // add whatever other fields were returned if not already defined
+                    foreach ($results->fields as $fname) {
+                        if (!isset($resultinfo[$fname])) {
+                            $resultinfo[$fname] = $doc->get_field($fname);
+                        }
+                    }
+                    
                     /*
                     $docteaser = $teasers[$docid];
                     if ($docteaser->content) {
