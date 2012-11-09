@@ -1046,7 +1046,7 @@ function dezi4w_search_results() {
                     $resultinfo['teaser'] = $doc->summary;
                     
                     // add whatever other fields were returned if not already defined
-                    foreach ($results->fields as $fname) {
+                    foreach ($response->fields as $fname) {
                         if (!isset($resultinfo[$fname])) {
                             $resultinfo[$fname] = $doc->get_field($fname);
                         }
