@@ -1480,7 +1480,7 @@ function dezi4w_options_page() {
  */
 function dezi4w_admin_head() {
     // include our default css and js
-    $plugindir = get_settings('home').'/wp-content/plugins/'.dirname(plugin_basename(__FILE__));
+    $plugindir = plugins_url().'/'.dirname(plugin_basename(__FILE__));
     wp_enqueue_script('dezi4w', $plugindir . '/template/dezi4w.js');
     echo "<link rel='stylesheet' href='$plugindir/template/search.css' type='text/css' media='screen' />\n";
 }
@@ -1491,7 +1491,7 @@ function dezi4w_admin_head() {
  */
 function dezi4w_default_head() {
     // include our default css
-    $plugindir = get_settings('home').'/wp-content/plugins/'.dirname(plugin_basename(__FILE__));
+    $plugindir = plugins_url().'/'.dirname(plugin_basename(__FILE__));
     echo "<link rel='stylesheet' href='$plugindir/template/search.css' type='text/css' media='screen' />\n";
 }
 
