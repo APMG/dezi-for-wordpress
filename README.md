@@ -11,7 +11,7 @@ Based on Solr for WordPress plugin.
 
 ## Description ##
 
-A WordPress plugin that replaces the default WordPress search with Solr.  Features include:
+A WordPress plugin that replaces the default WordPress search with Dezi.  Features include:
 
  * Index pages and posts
  * Enable faceting on fields such as tags, categories, author, and page type.
