@@ -41,9 +41,9 @@ if (version_compare($wp_version, '3.0', '<')) {
     exit ($errmsg);
 }
 
-$dezi_client_path = realpath(dirname(__FILE__).'/dezi-client/lib');
+$dezi_client_path = realpath(dirname(__FILE__));
 set_include_path(get_include_path() . PATH_SEPARATOR . $dezi_client_path);
-require_once 'Dezi_Client.php';
+require_once 'dezi-client/vendor/autoload.php';
 
 
 /**
@@ -126,7 +126,7 @@ function dezi4w_get_dezi($server_id = NULL) {
         $construct['username'] = $un;
         $construct['password'] = $pw;
     }
-    $dezi = new Dezi_Client($construct);
+    $dezi = new \Dezi\Client($construct);
 
     return $dezi;
 }
@@ -179,7 +179,7 @@ function dezi4w_build_document( $post_info, $domain = NULL, $path = NULL) {
             return NULL;
         }
 
-        $doc = new Dezi_Doc(array('uri'=>urlencode(get_permalink( $post_info->ID ))));
+        $doc = new \Dezi\Doc(array('uri'=>urlencode(get_permalink( $post_info->ID ))));
         $auth_info = get_userdata( $post_info->post_author );
 
         // wpmu specific info
