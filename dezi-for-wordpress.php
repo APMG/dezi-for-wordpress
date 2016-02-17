@@ -43,7 +43,7 @@ if (version_compare($wp_version, '3.0', '<')) {
 
 $dezi_client_path = realpath(dirname(__FILE__));
 set_include_path(get_include_path() . PATH_SEPARATOR . $dezi_client_path);
-require_once 'dezi-client/vendor/autoload.php';
+require_once 'vendor/autoload.php';
 
 
 /**
