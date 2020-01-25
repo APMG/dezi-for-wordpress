@@ -195,7 +195,7 @@ else {
 
 <?php if ($results['facets'] && $results['hits'] != 1) {
         foreach ($results['facets'] as $facet) {
-            if (sizeof($facet["items"]) > 1) { //don't display facets with only 1 value
+            if ($facet["items"] && sizeof($facet["items"]) > 1) { //don't display facets with only 1 value
                 printf("<li>\n<h3>%s</h3>\n", $facet['name']);
                 dezi4w_print_facet_items($facet["items"], "<ol>", "</ol>", "<li>", "</li>", "<li><ol>", "</ol></li>", "<li>", "</li>");
                 printf("</li>\n");

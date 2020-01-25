@@ -1258,7 +1258,7 @@ function dezi4w_master_query($dezi, $qry, $offset, $count, $fq, $sortby, &$plugi
 
 
     $facet_on_custom_taxonomy = $plugin_dezi4w_settings['dezi4w_facet_on_taxonomy'];
-    if (count($facet_on_custom_taxonomy)) {
+    if ($facet_on_custom_taxonomy || count($facet_on_custom_taxonomy)) {
         $taxonomies = (array)get_taxonomies(array('_builtin'=>FALSE), 'names');
         foreach ($taxonomies as $parent) {
             $facet_fields[] = $parent."_taxonomy";
