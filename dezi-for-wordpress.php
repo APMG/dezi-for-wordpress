@@ -892,17 +892,17 @@ function dezi4w_search_results() {
     }
 
     $fqstr = '';
-    $fqitms = split('\|\|', stripslashes($fq));
+    $fqitms = explode('\|\|', stripslashes($fq));
     $selectedfacets = array();
     foreach ($fqitms as $fqitem) {
         if ($fqitem) {
-            $splititm = split(':', $fqitem, 2);
+            $splititm = explode(':', $fqitem, 2);
             $selectedfacet = array();
             $selectedfacet['name'] = sprintf(__("%s:%s"), ucwords(preg_replace('/_str$/i', '', $splititm[0])), str_replace("^^", "/", $splititm[1]));
             $removelink = '';
             foreach ($fqitms as $fqitem2) {
                 if ($fqitem2 && !($fqitem2 === $fqitem)) {
-                    $splititm2 = split(':', $fqitem2, 2);
+                    $splititm2 = explode(':', $fqitem2, 2);
                     $removelink = $removelink . urlencode('||') . $splititm2[0] . ':' . urlencode($splititm2[1]);
                 }
             }
@@ -1057,7 +1057,7 @@ function dezi4w_search_results() {
                     if ($docteaser->content) {
                         $resultinfo['teaser'] = sprintf(__("...%s..."), implode("...", $docteaser->content));
                     } else {
-                        $words = split(' ', $doc->content);
+                        $words = explode(' ', $doc->content);
                         $teaser = implode(' ', array_slice($words, 0, 30));
                         $resultinfo['teaser'] = sprintf(__("%s..."), $teaser);
                     }
@@ -1258,7 +1258,7 @@ function dezi4w_master_query($dezi, $qry, $offset, $count, $fq, $sortby, &$plugi
 
 
     $facet_on_custom_taxonomy = $plugin_dezi4w_settings['dezi4w_facet_on_taxonomy'];
-    if (count($facet_on_custom_taxonomy)) {
+    if ($facet_on_custom_taxonomy || count($facet_on_custom_taxonomy)) {
         $taxonomies = (array)get_taxonomies(array('_builtin'=>FALSE), 'names');
         foreach ($taxonomies as $parent) {
             $facet_fields[] = $parent."_taxonomy";
@@ -1388,7 +1388,7 @@ function dezi4w_sanitise_options($options) {
 function dezi4w_filter_str2list_numeric($input) {
     $final = array();
     if ($input != "") {
-        foreach ( split(',', $input) as $val ) {
+        foreach ( explode(',', $input) as $val ) {
             $val = trim($val);
             if ( is_numeric($val) ) {
                 $final[] = $val;
@@ -1409,7 +1409,7 @@ function dezi4w_filter_str2list_numeric($input) {
 function dezi4w_filter_str2list($input) {
     $final = array();
     if ($input != "") {
-        foreach ( split(',', $input) as $val ) {
+        foreach ( explode(',', $input) as $val ) {
             $final[] = trim($val);
         }
     }
